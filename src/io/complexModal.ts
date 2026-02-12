@@ -1,6 +1,6 @@
 import type { ComplexModalFile, ComplexMode } from "../core/types";
 import { parseBaseShapeInfo } from "./baseShape";
-import { normalizeNewLines } from "./text";
+import { extractMarkedSection, toTrimmedLines } from "./text";
 
 const freqRegex =
   /^\s*(\d+)次\s+([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\s+([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?).*?\(([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?),\s*([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\)/;
@@ -9,23 +9,15 @@ const vecRegex =
   /^([A-Z]{2}_[0-9]+)\s+([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\s+([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\s+\(([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?),\s*([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\)/;
 
 export function parseComplexModalDat(text: string): ComplexModalFile {
-  const lines = normalizeNewLines(text)
-    .split("\n")
-    .map((line) => line.trimEnd());
+  const lines = toTrimmedLines(text);
+  const section = extractMarkedSection(lines, {
+    sectionName: "ComplexModalResult",
+    startMarker: "#ComplexModalResult",
+    endMarker: "#End_ComplexModalResult"
+  });
 
-  const resultStart = lines.findIndex((line) => line.includes("#ComplexModalResult"));
-  if (resultStart < 0) {
-    throw new Error("ComplexModalResult セクションが見つかりません。");
-  }
-  const resultEnd = lines.findIndex(
-    (line, i) => i > resultStart && line.includes("#End_ComplexModalResult")
-  );
-
-  const baseShape = parseBaseShapeInfo(lines.slice(0, resultStart).join("\n"));
-  const body = lines.slice(
-    resultStart + 1,
-    resultEnd > resultStart ? resultEnd : lines.length
-  );
+  const baseShape = parseBaseShapeInfo(section.before.join("\n"));
+  const body = section.body;
 
   const modes: ComplexMode[] = [];
   let currentMode: ComplexMode | null = null;

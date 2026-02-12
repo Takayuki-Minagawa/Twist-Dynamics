@@ -27,6 +27,13 @@ export class TextDecodingError extends Error {
   }
 }
 
+export class FormatParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FormatParseError";
+  }
+}
+
 function dedupeEncodings(encodings: SupportedTextEncoding[]): SupportedTextEncoding[] {
   const ordered: SupportedTextEncoding[] = [];
   for (const encoding of encodings) {
@@ -165,6 +172,48 @@ export function decodeText(
 
 export function normalizeNewLines(text: string): string {
   return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+export function toTrimmedLines(text: string): string[] {
+  return normalizeNewLines(text)
+    .split("\n")
+    .map((line) => line.trimEnd());
+}
+
+interface SectionOptions {
+  sectionName: string;
+  startMarker: string;
+  endMarker?: string;
+}
+
+interface SectionSlice {
+  startIndex: number;
+  endIndex: number;
+  before: string[];
+  body: string[];
+}
+
+export function extractMarkedSection(lines: string[], options: SectionOptions): SectionSlice {
+  const startIndex = lines.findIndex((line) => line.includes(options.startMarker));
+  if (startIndex < 0) {
+    throw new FormatParseError(
+      `${options.sectionName}: required marker "${options.startMarker}" was not found.`
+    );
+  }
+
+  let detectedEndIndex = lines.length;
+  if (options.endMarker !== undefined) {
+    const endMarker = options.endMarker;
+    detectedEndIndex = lines.findIndex((line, i) => i > startIndex && line.includes(endMarker));
+  }
+  const endIndex = detectedEndIndex > startIndex ? detectedEndIndex : lines.length;
+
+  return {
+    startIndex,
+    endIndex,
+    before: lines.slice(0, startIndex),
+    body: lines.slice(startIndex + 1, endIndex)
+  };
 }
 
 export function splitCsvLikeLine(line: string): string[] {

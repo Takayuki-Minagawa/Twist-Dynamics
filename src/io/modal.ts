@@ -1,6 +1,6 @@
 import type { ModalDatFile } from "../core/types";
 import { parseBaseShapeInfo } from "./baseShape";
-import { normalizeNewLines, splitCsvLikeLine, toNumberList } from "./text";
+import { extractMarkedSection, splitCsvLikeLine, toNumberList, toTrimmedLines } from "./text";
 
 function parseEffectiveMassRatio(
   lines: string[],
@@ -12,23 +12,14 @@ function parseEffectiveMassRatio(
 }
 
 export function parseModalDat(text: string): ModalDatFile {
-  const lines = normalizeNewLines(text)
-    .split("\n")
-    .map((line) => line.trimEnd());
-
-  const modalStart = lines.findIndex((line) => line.includes("#ModalResult"));
-  if (modalStart < 0) {
-    throw new Error("ModalResult セクションが見つかりません。");
-  }
-
-  const modalEnd = lines.findIndex(
-    (line, i) => i > modalStart && line.includes("#End_ModalResult")
-  );
-  const baseShape = parseBaseShapeInfo(lines.slice(0, modalStart).join("\n"));
-  const modalLines = lines.slice(
-    modalStart + 1,
-    modalEnd > modalStart ? modalEnd : lines.length
-  );
+  const lines = toTrimmedLines(text);
+  const section = extractMarkedSection(lines, {
+    sectionName: "ModalResult",
+    startMarker: "#ModalResult",
+    endMarker: "#End_ModalResult"
+  });
+  const baseShape = parseBaseShapeInfo(section.before.join("\n"));
+  const modalLines = section.body;
 
   const freqIndex = modalLines.findIndex((line) => line.includes("固有振動数"));
   const frequenciesHz =
