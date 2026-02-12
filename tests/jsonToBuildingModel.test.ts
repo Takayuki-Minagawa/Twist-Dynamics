@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { convertNiceJsonToBuildingModel } from "../src/io/jsonToBuildingModel";
+import {
+  convertNiceJsonToBuildingModel,
+  NiceJsonValidationError
+} from "../src/io/jsonToBuildingModel";
 
 describe("JSON -> BuildingModel converter", () => {
   it("converts minimal NICE JSON", () => {
@@ -24,5 +27,27 @@ describe("JSON -> BuildingModel converter", () => {
     expect(model.columns.length).toBe(1);
     expect(model.walls.length).toBe(1);
     expect(model.wallCharaDB[0].name).toBe("WAL1_10200");
+  });
+
+  it("throws validation error for invalid json text", () => {
+    expect(() => convertNiceJsonToBuildingModel("{invalid-json")).toThrow(NiceJsonValidationError);
+  });
+
+  it("throws validation error when required object is missing", () => {
+    const json = JSON.stringify({
+      固有値解析諸元: []
+    });
+    expect(() => convertNiceJsonToBuildingModel(json)).toThrow(NiceJsonValidationError);
+  });
+
+  it("throws validation error when floor coordinates are not x/y pairs", () => {
+    const json = JSON.stringify({
+      物件情報: { 建物階数: 1 },
+      固有値解析諸元: [],
+      床情報: [{ 階: 1, 座標: [0, 0, 300] }],
+      柱剛性情報: [],
+      壁剛性情報: []
+    });
+    expect(() => convertNiceJsonToBuildingModel(json)).toThrow(NiceJsonValidationError);
   });
 });

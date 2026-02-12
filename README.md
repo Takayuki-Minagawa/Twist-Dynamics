@@ -1,7 +1,7 @@
 # Twist-Dynamics
 
 ## バージョン
-- `Ver.Beta01`
+- `Ver.Beta02`
 
 `HH捩れ振動評価` の Web 移植（Phase 0/1）向け実装です。  
 この段階では、既存ファイル互換の I/O と差分検証を優先しています。
@@ -13,10 +13,13 @@
 - `RespResult(.csv)` パーサ
 - `JSON -> BuildingModel(XML)` 変換
 - 基準比較 CLI（`scripts/compare.ts`）
+  - 比較ロジックは `src/core/compare.ts` へ分離
+  - `--format json` による構造化出力をサポート
 - 簡易ブラウザ UI（ローカルファイル読込と変換確認）
 - 多言語 UI（日本語 / English）
 - 簡易マニュアル表示（言語連動）
 - ライト / ダークモード切替
+- テーブル駆動テスト（fixture/golden 比較）による回帰検証
 
 ## 文字コード方針
 - リポジトリ内のテキストファイルは `UTF-8 (BOMなし)` を基準とする
@@ -31,7 +34,7 @@
 ## 簡易マニュアル
 - アプリ内の「簡易マニュアル」ボタンから表示
 - 選択言語（日本語 / English）に連動して内容を切替
-- 本バージョン表記: `Ver.Beta01`
+- 本バージョン表記: `Ver.Beta02`
 
 ## セットアップ
 ```bash
@@ -53,6 +56,7 @@ npm run test
 npm run compare -- --type modal --reference reference/modal/test_01_eig.dat --target reference/modal/test_01_eig.dat
 npm run compare -- --type complex --reference reference/complex/Test_simple_ceig.dat --target reference/complex/Test_simple_ceig.dat
 npm run compare -- --type resp --reference reference/resp/test.csv --target reference/resp/test.csv
+npm run compare -- --type complex --reference reference/complex/Test_simple_ceig.dat --target reference/complex/Test_simple_ceig.dat --format json
 ```
 
 ## ビルド

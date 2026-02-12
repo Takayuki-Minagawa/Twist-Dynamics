@@ -1,121 +1,13 @@
 import "./style.css";
-import {
-  convertNiceJsonToBuildingModelXml,
-  decodeTextWithMeta,
-  parseBuildingModelXml,
-  parseComplexModalDat,
-  parseModalDat,
-  parseRespCsv,
-  summarizeBuildingModel,
-  TextDecodingError
-} from "./io";
+import { convertNiceJsonToBuildingModelXml } from "./io";
+import { getUiText, normalizeLanguage, type Language, type UiText } from "./app/i18n";
+import { processInputFile, type FileProcessingMessages } from "./app/fileProcessing";
+import { createAppView } from "./app/view";
 
-type FileType = "xml" | "modal" | "complex" | "resp" | "json" | "unknown";
-type Language = "ja" | "en";
 type Theme = "light" | "dark";
-
-interface UiText {
-  heroTitle: string;
-  heroDescription: string;
-  parseCardTitle: string;
-  convertCardTitle: string;
-  fileInputLabel: string;
-  convertButton: string;
-  downloadButton: string;
-  jsonPlaceholder: string;
-  note: string;
-  languageLabel: string;
-  openManual: string;
-  closeManual: string;
-  manualTitle: string;
-  manualIntro: string;
-  manualSteps: string[];
-  switchToDark: string;
-  switchToLight: string;
-  unknownFormat: string;
-  convertErrorPrefix: string;
-  decodeErrorPrefix: string;
-  decodeUnsupportedAction: string;
-}
 
 const LANGUAGE_KEY = "twist-dynamics-language";
 const THEME_KEY = "twist-dynamics-theme";
-const APP_VERSION = "Ver.Beta01";
-
-const TEXTS: Record<Language, UiText> = {
-  ja: {
-    heroTitle: `Twist-Dynamics ${APP_VERSION} (Phase 0/1)`,
-    heroDescription:
-      "既存フォーマットの読込検証と JSON -> BuildingModel(XML) 変換をブラウザ上で実行します。",
-    parseCardTitle: "ファイル読込（XML / DAT / CSV / JSON）",
-    convertCardTitle: "JSON -> BuildingModel XML 変換",
-    fileInputLabel: "対象ファイル:",
-    convertButton: "XMLへ変換",
-    downloadButton: "XMLを保存",
-    jsonPlaceholder: "ここに NICE JSON を貼り付け",
-    note: "単位系ルール（kN, cm など）は既存 C# と整合させて扱います。",
-    languageLabel: "表示言語",
-    openManual: "簡易マニュアル",
-    closeManual: "閉じる",
-    manualTitle: `簡易マニュアル (${APP_VERSION})`,
-    manualIntro: `この画面でできる基本操作です。現在バージョン: ${APP_VERSION}`,
-    manualSteps: [
-      "左カードで既存データ（XML/DAT/CSV/JSON）を読み込み、判定結果を確認します。",
-      "右カードへ NICE JSON を貼り付けて「XMLへ変換」を押すと BuildingModel XML を生成します。",
-      "生成された XML は「XMLを保存」でローカル保存できます。",
-      "表示言語とライト/ダークモードは上部ボタンからいつでも切り替えできます。",
-      "文字コードは UTF-8 / Shift_JIS / UTF-16 を自動判定します。判定不能時は再保存を促すエラーを表示します。"
-    ],
-    switchToDark: "ダークモード",
-    switchToLight: "ライトモード",
-    unknownFormat: "既存フォーマットの判定に失敗しました。",
-    convertErrorPrefix: "変換エラー:",
-    decodeErrorPrefix: "文字コードエラー:",
-    decodeUnsupportedAction:
-      "UTF-8(BOMなし) か Shift_JIS で再保存してから再アップロードしてください。"
-  },
-  en: {
-    heroTitle: `Twist-Dynamics ${APP_VERSION} (Phase 0/1)`,
-    heroDescription:
-      "Validate legacy file formats and run JSON -> BuildingModel(XML) conversion in the browser.",
-    parseCardTitle: "Load files (XML / DAT / CSV / JSON)",
-    convertCardTitle: "JSON -> BuildingModel XML Conversion",
-    fileInputLabel: "Target files:",
-    convertButton: "Convert to XML",
-    downloadButton: "Save XML",
-    jsonPlaceholder: "Paste NICE JSON here",
-    note: "Unit-system rules (kN, cm, etc.) stay aligned with the legacy C# implementation.",
-    languageLabel: "Language",
-    openManual: "Quick Manual",
-    closeManual: "Close",
-    manualTitle: `Quick Manual (${APP_VERSION})`,
-    manualIntro: `Basic operations available on this screen. Current version: ${APP_VERSION}`,
-    manualSteps: [
-      "Load legacy files (XML/DAT/CSV/JSON) in the left card and inspect parse summaries.",
-      "Paste NICE JSON in the right card and click \"Convert to XML\" to generate BuildingModel XML.",
-      "Use \"Save XML\" to download the generated XML to your local machine.",
-      "Switch language and light/dark mode at any time from the top controls.",
-      "Character encoding is auto-detected for UTF-8, Shift_JIS, and UTF-16. If detection fails, an explicit re-save message is shown."
-    ],
-    switchToDark: "Dark mode",
-    switchToLight: "Light mode",
-    unknownFormat: "Could not identify this as a supported legacy format.",
-    convertErrorPrefix: "Conversion error:",
-    decodeErrorPrefix: "Encoding error:",
-    decodeUnsupportedAction:
-      "Re-save the file as UTF-8 (without BOM) or Shift_JIS, then upload again."
-  }
-};
-
-function detectType(fileName: string, text: string): FileType {
-  const lowerName = fileName.toLowerCase();
-  if (lowerName.endsWith(".xml")) return "xml";
-  if (lowerName.endsWith(".json")) return "json";
-  if (lowerName.endsWith(".csv") && text.includes("#Resp_Result")) return "resp";
-  if (lowerName.endsWith(".dat") && text.includes("#ComplexModalResult")) return "complex";
-  if (lowerName.endsWith(".dat") && text.includes("#ModalResult")) return "modal";
-  return "unknown";
-}
 
 function downloadText(name: string, text: string): void {
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -128,8 +20,7 @@ function downloadText(name: string, text: string): void {
 }
 
 function loadLanguage(): Language {
-  const saved = window.localStorage.getItem(LANGUAGE_KEY);
-  return saved === "en" ? "en" : "ja";
+  return normalizeLanguage(window.localStorage.getItem(LANGUAGE_KEY));
 }
 
 function loadTheme(): Theme {
@@ -140,154 +31,64 @@ function loadTheme(): Theme {
 function bootstrap(): void {
   const root = document.querySelector<HTMLDivElement>("#app");
   if (!root) return;
+  const view = createAppView(root);
+  if (!view) return;
 
   let currentLanguage = loadLanguage();
   let currentTheme = loadTheme();
   let latestXml = "";
-
-  root.innerHTML = `
-    <div class="app">
-      <section class="toolbar">
-        <div class="toolbar-group">
-          <label id="languageLabel" for="languageSelect"></label>
-          <select id="languageSelect">
-            <option value="ja">日本語</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-        <div class="toolbar-actions">
-          <button id="themeButton" type="button" class="button-secondary"></button>
-          <button id="manualButton" type="button" class="button-secondary"></button>
-        </div>
-      </section>
-      <section class="hero">
-        <h1 id="heroTitle"></h1>
-        <p id="heroDescription"></p>
-      </section>
-      <section class="grid">
-        <article class="card">
-          <h2 id="parseCardTitle"></h2>
-          <div class="actions">
-            <label id="fileInputLabel" class="inline-label" for="fileInput"></label>
-            <input id="fileInput" type="file" multiple />
-          </div>
-          <pre id="summary"></pre>
-        </article>
-        <article class="card">
-          <h2 id="convertCardTitle"></h2>
-          <textarea id="jsonInput"></textarea>
-          <div class="actions">
-            <button id="convertButton" type="button"></button>
-            <button id="downloadButton" type="button"></button>
-          </div>
-          <pre id="xmlOutput"></pre>
-          <div id="noteText" class="note"></div>
-        </article>
-      </section>
-    </div>
-    <div id="manualModal" class="manual-modal hidden" role="dialog" aria-modal="true" aria-labelledby="manualTitle">
-      <div class="manual-panel">
-        <h2 id="manualTitle"></h2>
-        <p id="manualIntro"></p>
-        <ol id="manualList"></ol>
-        <div class="manual-actions">
-          <button id="manualCloseButton" type="button"></button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const fileInput = root.querySelector<HTMLInputElement>("#fileInput");
-  const summary = root.querySelector<HTMLElement>("#summary");
-  const jsonInput = root.querySelector<HTMLTextAreaElement>("#jsonInput");
-  const xmlOutput = root.querySelector<HTMLElement>("#xmlOutput");
-  const convertButton = root.querySelector<HTMLButtonElement>("#convertButton");
-  const downloadButton = root.querySelector<HTMLButtonElement>("#downloadButton");
-  const languageLabel = root.querySelector<HTMLLabelElement>("#languageLabel");
-  const languageSelect = root.querySelector<HTMLSelectElement>("#languageSelect");
-  const themeButton = root.querySelector<HTMLButtonElement>("#themeButton");
-  const manualButton = root.querySelector<HTMLButtonElement>("#manualButton");
-  const heroTitle = root.querySelector<HTMLHeadingElement>("#heroTitle");
-  const heroDescription = root.querySelector<HTMLParagraphElement>("#heroDescription");
-  const parseCardTitle = root.querySelector<HTMLHeadingElement>("#parseCardTitle");
-  const convertCardTitle = root.querySelector<HTMLHeadingElement>("#convertCardTitle");
-  const fileInputLabel = root.querySelector<HTMLLabelElement>("#fileInputLabel");
-  const noteText = root.querySelector<HTMLDivElement>("#noteText");
-  const manualModal = root.querySelector<HTMLDivElement>("#manualModal");
-  const manualTitle = root.querySelector<HTMLHeadingElement>("#manualTitle");
-  const manualIntro = root.querySelector<HTMLParagraphElement>("#manualIntro");
-  const manualList = root.querySelector<HTMLOListElement>("#manualList");
-  const manualCloseButton = root.querySelector<HTMLButtonElement>("#manualCloseButton");
-
-  if (
-    !fileInput ||
-    !summary ||
-    !jsonInput ||
-    !xmlOutput ||
-    !convertButton ||
-    !downloadButton ||
-    !languageLabel ||
-    !languageSelect ||
-    !themeButton ||
-    !manualButton ||
-    !heroTitle ||
-    !heroDescription ||
-    !parseCardTitle ||
-    !convertCardTitle ||
-    !fileInputLabel ||
-    !noteText ||
-    !manualModal ||
-    !manualTitle ||
-    !manualIntro ||
-    !manualList ||
-    !manualCloseButton
-  ) {
-    return;
-  }
 
   const applyTheme = (): void => {
     document.documentElement.dataset.theme = currentTheme;
   };
 
   const closeManual = (): void => {
-    manualModal.classList.add("hidden");
+    view.manualModal.classList.add("hidden");
   };
 
   const openManual = (): void => {
-    manualModal.classList.remove("hidden");
+    view.manualModal.classList.remove("hidden");
+  };
+
+  const getFileMessages = (text: UiText): FileProcessingMessages => {
+    return {
+      unknownFormat: text.unknownFormat,
+      decodeErrorPrefix: text.decodeErrorPrefix,
+      decodeUnsupportedAction: text.decodeUnsupportedAction
+    };
   };
 
   const updateTexts = (): void => {
-    const t = TEXTS[currentLanguage];
+    const t = getUiText(currentLanguage);
 
     document.documentElement.lang = currentLanguage;
-    heroTitle.textContent = t.heroTitle;
-    heroDescription.textContent = t.heroDescription;
-    parseCardTitle.textContent = t.parseCardTitle;
-    convertCardTitle.textContent = t.convertCardTitle;
-    fileInputLabel.textContent = t.fileInputLabel;
-    convertButton.textContent = t.convertButton;
-    downloadButton.textContent = t.downloadButton;
-    jsonInput.placeholder = t.jsonPlaceholder;
-    noteText.textContent = t.note;
-    languageLabel.textContent = t.languageLabel;
-    manualButton.textContent = t.openManual;
-    manualCloseButton.textContent = t.closeManual;
-    manualTitle.textContent = t.manualTitle;
-    manualIntro.textContent = t.manualIntro;
-    themeButton.textContent = currentTheme === "light" ? t.switchToDark : t.switchToLight;
+    view.heroTitle.textContent = t.heroTitle;
+    view.heroDescription.textContent = t.heroDescription;
+    view.parseCardTitle.textContent = t.parseCardTitle;
+    view.convertCardTitle.textContent = t.convertCardTitle;
+    view.fileInputLabel.textContent = t.fileInputLabel;
+    view.convertButton.textContent = t.convertButton;
+    view.downloadButton.textContent = t.downloadButton;
+    view.jsonInput.placeholder = t.jsonPlaceholder;
+    view.noteText.textContent = t.note;
+    view.languageLabel.textContent = t.languageLabel;
+    view.manualButton.textContent = t.openManual;
+    view.manualCloseButton.textContent = t.closeManual;
+    view.manualTitle.textContent = t.manualTitle;
+    view.manualIntro.textContent = t.manualIntro;
+    view.themeButton.textContent = currentTheme === "light" ? t.switchToDark : t.switchToLight;
 
-    manualList.innerHTML = "";
+    view.manualList.innerHTML = "";
     for (const step of t.manualSteps) {
       const li = document.createElement("li");
       li.textContent = step;
-      manualList.append(li);
+      view.manualList.append(li);
     }
   };
 
   const setLanguage = (language: Language): void => {
     currentLanguage = language;
-    languageSelect.value = language;
+    view.languageSelect.value = language;
     window.localStorage.setItem(LANGUAGE_KEY, language);
     updateTexts();
   };
@@ -299,142 +100,56 @@ function bootstrap(): void {
     updateTexts();
   };
 
-  languageSelect.value = currentLanguage;
+  view.languageSelect.value = currentLanguage;
   applyTheme();
   updateTexts();
 
-  fileInput.addEventListener("change", async () => {
-    const files = Array.from(fileInput.files ?? []);
+  view.fileInput.addEventListener("change", async () => {
+    const files = Array.from(view.fileInput.files ?? []);
     const reports: Array<Record<string, unknown>> = [];
+    const t = getUiText(currentLanguage);
 
     for (const file of files) {
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const decoded = decodeTextWithMeta(arrayBuffer, "shift_jis");
-        const text = decoded.text;
-        const type = detectType(file.name, text);
-
-        const reportBase: Record<string, unknown> = {
-          file: file.name,
-          encoding: decoded.encoding
-        };
-        if (decoded.hasBom) reportBase.bomRemoved = true;
-        if (decoded.warnings.length > 0) reportBase.warnings = decoded.warnings;
-
-        switch (type) {
-          case "xml": {
-            const model = parseBuildingModelXml(text);
-            reports.push({
-              ...reportBase,
-              type,
-              ...summarizeBuildingModel(model)
-            });
-            break;
-          }
-          case "modal": {
-            const modal = parseModalDat(text);
-            reports.push({
-              ...reportBase,
-              type,
-              story: modal.baseShape.story ?? null,
-              modeCount: modal.modal.frequenciesHz.length,
-              firstFrequencyHz: modal.modal.frequenciesHz[0] ?? null
-            });
-            break;
-          }
-          case "complex": {
-            const complex = parseComplexModalDat(text);
-            reports.push({
-              ...reportBase,
-              type,
-              story: complex.baseShape.story ?? null,
-              modeCount: complex.modes.length,
-              firstFrequencyHz: complex.modes[0]?.frequencyHz ?? null
-            });
-            break;
-          }
-          case "resp": {
-            const resp = parseRespCsv(text);
-            reports.push({
-              ...reportBase,
-              type,
-              rows: resp.records.length,
-              columns: resp.header.length,
-              dt: resp.meta.dt
-            });
-            break;
-          }
-          case "json": {
-            const xml = convertNiceJsonToBuildingModelXml(text);
-            reports.push({
-              ...reportBase,
-              type,
-              convertedXmlLength: xml.length
-            });
-            latestXml = xml;
-            xmlOutput.textContent = xml;
-            break;
-          }
-          default:
-            reports.push({
-              ...reportBase,
-              type: "unknown",
-              message: TEXTS[currentLanguage].unknownFormat
-            });
-            break;
-        }
-      } catch (error) {
-        if (error instanceof TextDecodingError) {
-          reports.push({
-            file: file.name,
-            type: "unknown",
-            error: `${TEXTS[currentLanguage].decodeErrorPrefix} ${error.message}`,
-            action: TEXTS[currentLanguage].decodeUnsupportedAction
-          });
-          continue;
-        }
-
-        reports.push({
-          file: file.name,
-          type: "unknown",
-          error: error instanceof Error ? error.message : String(error)
-        });
+      const result = await processInputFile(file, getFileMessages(t));
+      reports.push(result.report);
+      if (result.generatedXml) {
+        latestXml = result.generatedXml;
+        view.xmlOutput.textContent = latestXml;
       }
     }
 
-    summary.textContent = JSON.stringify(reports, null, 2);
+    view.summary.textContent = JSON.stringify(reports, null, 2);
   });
 
-  convertButton.addEventListener("click", () => {
+  view.convertButton.addEventListener("click", () => {
+    const t = getUiText(currentLanguage);
     try {
-      latestXml = convertNiceJsonToBuildingModelXml(jsonInput.value);
-      xmlOutput.textContent = latestXml;
+      latestXml = convertNiceJsonToBuildingModelXml(view.jsonInput.value);
+      view.xmlOutput.textContent = latestXml;
     } catch (error) {
-      xmlOutput.textContent = `${TEXTS[currentLanguage].convertErrorPrefix} ${
-        error instanceof Error ? error.message : String(error)
-      }`;
+      view.xmlOutput.textContent = `${t.convertErrorPrefix} ${error instanceof Error ? error.message : String(error)}`;
     }
   });
 
-  downloadButton.addEventListener("click", () => {
+  view.downloadButton.addEventListener("click", () => {
     if (!latestXml) return;
     downloadText("converted_building_model.xml", latestXml);
   });
 
-  languageSelect.addEventListener("change", () => {
-    const nextLanguage: Language = languageSelect.value === "en" ? "en" : "ja";
+  view.languageSelect.addEventListener("change", () => {
+    const nextLanguage: Language = view.languageSelect.value === "en" ? "en" : "ja";
     setLanguage(nextLanguage);
   });
 
-  themeButton.addEventListener("click", () => {
+  view.themeButton.addEventListener("click", () => {
     setTheme(currentTheme === "light" ? "dark" : "light");
   });
 
-  manualButton.addEventListener("click", openManual);
-  manualCloseButton.addEventListener("click", closeManual);
+  view.manualButton.addEventListener("click", openManual);
+  view.manualCloseButton.addEventListener("click", closeManual);
 
-  manualModal.addEventListener("click", (event) => {
-    if (event.target === manualModal) closeManual();
+  view.manualModal.addEventListener("click", (event) => {
+    if (event.target === view.manualModal) closeManual();
   });
 
   document.addEventListener("keydown", (event) => {

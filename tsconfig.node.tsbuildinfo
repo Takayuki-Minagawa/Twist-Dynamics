@@ -1,1 +1,1 @@
-{"root":["./vite.config.ts","./scripts/compare.ts","./tests/buildingmodel.test.ts","./tests/complexmodal.test.ts","./tests/helpers.ts","./tests/jsontobuildingmodel.test.ts","./tests/modal.test.ts","./tests/resp.test.ts"],"version":"5.9.3"}
+{"root":["./vite.config.ts","./scripts/check-encoding.ts","./scripts/compare.ts","./tests/comparecore.test.ts","./tests/helpers.ts","./tests/iofixturestable.test.ts","./tests/jsontobuildingmodel.test.ts","./tests/parsersections.test.ts","./tests/textencoding.test.ts"],"version":"5.9.3"}

@@ -1,13 +1,19 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  decodeText,
-  parseComplexModalDat,
-  parseModalDat,
-  parseRespCsv
-} from "../src/io";
+import { compareByType, type CompareIssue, type CompareType } from "../src/core/compare";
+import { decodeText } from "../src/io";
 
-type CompareType = "modal" | "complex" | "resp";
+type OutputFormat = "text" | "json";
+
+interface CliOptions {
+  type: CompareType;
+  referencePath: string;
+  targetPath: string;
+  rtol: number;
+  atol: number;
+  format: OutputFormat;
+  maxIssues: number;
+}
 
 function arg(name: string, fallback = ""): string {
   const index = process.argv.indexOf(name);
@@ -17,6 +23,7 @@ function arg(name: string, fallback = ""): string {
 
 function numArg(name: string, fallback: number): number {
   const raw = arg(name, "");
+  if (raw.trim().length === 0) return fallback;
   const value = Number(raw);
   return Number.isFinite(value) ? value : fallback;
 }
@@ -24,121 +31,109 @@ function numArg(name: string, fallback: number): number {
 function readText(pathLike: string): string {
   const abs = resolve(pathLike);
   const raw = readFileSync(abs);
-  const buffer = raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength);
-  return decodeText(buffer, "shift_jis");
+  const source = raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength);
+  return decodeText(source, "shift_jis");
 }
 
-function relDiff(a: number, b: number): number {
-  const scale = Math.max(Math.abs(a), Math.abs(b), 1e-12);
-  return Math.abs(a - b) / scale;
+function usage(): string {
+  return (
+    "Usage: npm run compare -- --type modal|complex|resp --reference <path> --target <path> " +
+    "[--rtol 0.01] [--atol 1e-6] [--format text|json] [--max-issues 50]"
+  );
 }
 
-function compareNumberArrays(
-  name: string,
-  a: number[],
-  b: number[],
-  rtol: number,
-  atol: number
-): string[] {
-  const issues: string[] = [];
-  if (a.length !== b.length) {
-    issues.push(`${name}: length mismatch ${a.length} != ${b.length}`);
-    return issues;
+function parseType(rawType: string): CompareType | null {
+  if (rawType === "modal" || rawType === "complex" || rawType === "resp") {
+    return rawType;
   }
-  for (let i = 0; i < a.length; i++) {
-    const abs = Math.abs(a[i] - b[i]);
-    const rel = relDiff(a[i], b[i]);
-    if (abs > atol && rel > rtol) {
-      issues.push(
-        `${name}[${i}] mismatch ref=${a[i]} target=${b[i]} abs=${abs} rel=${rel}`
-      );
-    }
-  }
-  return issues;
+  return null;
 }
 
-function compareModal(referenceText: string, targetText: string, rtol: number, atol: number): string[] {
-  const ref = parseModalDat(referenceText).modal;
-  const tgt = parseModalDat(targetText).modal;
-  return [
-    ...compareNumberArrays("frequenciesHz", ref.frequenciesHz, tgt.frequenciesHz, rtol, atol),
-    ...compareNumberArrays(
-      "participationFactorX",
-      ref.participationFactorX,
-      tgt.participationFactorX,
-      rtol,
-      atol
-    ),
-    ...compareNumberArrays(
-      "participationFactorY",
-      ref.participationFactorY,
-      tgt.participationFactorY,
-      rtol,
-      atol
-    )
-  ];
+function parseOutputFormat(raw: string): OutputFormat {
+  return raw === "json" ? "json" : "text";
 }
 
-function compareComplex(referenceText: string, targetText: string, rtol: number, atol: number): string[] {
-  const ref = parseComplexModalDat(referenceText);
-  const tgt = parseComplexModalDat(targetText);
-  const refFreq = ref.modes.map((m) => m.frequencyHz);
-  const tgtFreq = tgt.modes.map((m) => m.frequencyHz);
-  const refDamp = ref.modes.map((m) => m.dampingRatioPercent);
-  const tgtDamp = tgt.modes.map((m) => m.dampingRatioPercent);
-  return [
-    ...compareNumberArrays("complex.frequenciesHz", refFreq, tgtFreq, rtol, atol),
-    ...compareNumberArrays("complex.dampingRatio", refDamp, tgtDamp, rtol, atol)
-  ];
-}
-
-function compareResp(referenceText: string, targetText: string, rtol: number, atol: number): string[] {
-  const ref = parseRespCsv(referenceText);
-  const tgt = parseRespCsv(targetText);
-  return [
-    ...compareNumberArrays("resp.columnMaxAbs", ref.columnMaxAbs, tgt.columnMaxAbs, rtol, atol),
-    ...compareNumberArrays(
-      "resp.timeColumn",
-      ref.records.map((row) => row[0]),
-      tgt.records.map((row) => row[0]),
-      rtol,
-      atol
-    )
-  ];
-}
-
-function main(): void {
-  const type = arg("--type") as CompareType;
+function parseCliOptions(): CliOptions {
+  const type = parseType(arg("--type"));
   const referencePath = arg("--reference");
   const targetPath = arg("--target");
   const rtol = numArg("--rtol", 0.01);
   const atol = numArg("--atol", 1e-6);
+  const format = parseOutputFormat(arg("--format", "text"));
+  const maxIssues = Math.max(1, Math.trunc(numArg("--max-issues", 50)));
 
   if (!type || !referencePath || !targetPath) {
-    console.error(
-      "Usage: npm run compare -- --type modal|complex|resp --reference <path> --target <path> [--rtol 0.01] [--atol 1e-6]"
-    );
-    process.exit(2);
+    throw new Error(usage());
   }
 
-  const referenceText = readText(referencePath);
-  const targetText = readText(targetPath);
+  return {
+    type,
+    referencePath,
+    targetPath,
+    rtol,
+    atol,
+    format,
+    maxIssues
+  };
+}
 
-  let issues: string[] = [];
-  if (type === "modal") issues = compareModal(referenceText, targetText, rtol, atol);
-  if (type === "complex") issues = compareComplex(referenceText, targetText, rtol, atol);
-  if (type === "resp") issues = compareResp(referenceText, targetText, rtol, atol);
-
+function printTextResult(issues: CompareIssue[], maxIssues: number): void {
   if (issues.length === 0) {
     console.log("OK: no differences beyond tolerance.");
-    process.exit(0);
+    return;
   }
 
   console.error(`NG: ${issues.length} issue(s) found.`);
-  for (const issue of issues.slice(0, 50)) {
-    console.error(`- ${issue}`);
+  for (const issue of issues.slice(0, maxIssues)) {
+    console.error(`- ${issue.message}`);
   }
-  process.exit(1);
+}
+
+function printJsonResult(
+  options: CliOptions,
+  issues: CompareIssue[],
+  referencePath: string,
+  targetPath: string
+): void {
+  const payload = {
+    ok: issues.length === 0,
+    type: options.type,
+    referencePath,
+    targetPath,
+    tolerance: {
+      rtol: options.rtol,
+      atol: options.atol
+    },
+    issueCount: issues.length,
+    issues: issues.slice(0, options.maxIssues)
+  };
+  console.log(JSON.stringify(payload, null, 2));
+}
+
+function main(): void {
+  let options: CliOptions;
+  try {
+    options = parseCliOptions();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(2);
+    return;
+  }
+
+  const referenceText = readText(options.referencePath);
+  const targetText = readText(options.targetPath);
+  const result = compareByType(options.type, referenceText, targetText, {
+    rtol: options.rtol,
+    atol: options.atol
+  });
+
+  if (options.format === "json") {
+    printJsonResult(options, result.issues, options.referencePath, options.targetPath);
+  } else {
+    printTextResult(result.issues, options.maxIssues);
+  }
+
+  process.exit(result.issues.length === 0 ? 0 : 1);
 }
 
 main();

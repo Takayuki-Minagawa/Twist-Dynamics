@@ -1,6 +1,12 @@
 import type { RespFile } from "../core/types";
 import { parseBaseShapeInfo } from "./baseShape";
-import { normalizeNewLines, splitCsvLikeLine, toNumberList } from "./text";
+import {
+  extractMarkedSection,
+  FormatParseError,
+  splitCsvLikeLine,
+  toNumberList,
+  toTrimmedLines
+} from "./text";
 
 function getNumericValue(tokens: string[], label: string, fallback = 0): number {
   const index = tokens.findIndex((token) => token === label);
@@ -10,23 +16,23 @@ function getNumericValue(tokens: string[], label: string, fallback = 0): number 
 }
 
 export function parseRespCsv(text: string): RespFile {
-  const lines = normalizeNewLines(text)
-    .split("\n")
-    .map((line) => line.trimEnd());
+  const lines = toTrimmedLines(text);
+  const section = extractMarkedSection(lines, {
+    sectionName: "Resp_Result",
+    startMarker: "#Resp_Result"
+  });
+  const baseShape = parseBaseShapeInfo(section.before.join("\n"));
 
-  const resultStart = lines.findIndex((line) => line.includes("#Resp_Result"));
-  if (resultStart < 0) {
-    throw new Error("Resp_Result セクションが見つかりません。");
+  if (section.body.length < 2) {
+    throw new FormatParseError("Resp_Result: meta/header lines are missing.");
   }
 
-  const baseShape = parseBaseShapeInfo(lines.slice(0, resultStart).join("\n"));
-
-  const metaTokens = splitCsvLikeLine(lines[resultStart + 1] ?? "");
-  const header = splitCsvLikeLine(lines[resultStart + 2] ?? "");
+  const metaTokens = splitCsvLikeLine(section.body[0]);
+  const header = splitCsvLikeLine(section.body[1]);
   const records: number[][] = [];
 
-  for (let i = resultStart + 3; i < lines.length; i++) {
-    const line = lines[i].trim();
+  for (let i = 2; i < section.body.length; i++) {
+    const line = section.body[i].trim();
     if (!line) continue;
     const row = toNumberList(splitCsvLikeLine(line));
     if (row.length > 0) records.push(row);
