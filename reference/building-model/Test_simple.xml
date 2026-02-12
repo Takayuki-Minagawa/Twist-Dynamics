@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ATV>
+  <object classname="Ebi_Docs.Data.StructInfo">
+    <質点数>1</質点数>
+    <躯体タイプ>R</躯体タイプ>
+    <Zレベル>0 300</Zレベル>
+    <重量>100</重量>
+    <重量慣性モーメント>13519633.33</重量慣性モーメント>
+    <重心>610 183</重心>
+  </object>
+  <object classname="Ebi_Docs.Data.Floor">
+    <Floor>1 0 0 0 366 1220 366 1220 0</Floor>
+  </object>
+  <object classname="Ebi_Docs.Data.Floor">
+    <Floor>2 0 0 0 366 1220 366 1220 0</Floor>
+  </object>
+  <object classname="Ebi_Docs.Data.R_Column">
+    <層>1</層>
+    <位置>0 0</位置>
+    <剛性>10.000 10.000</剛性>
+  </object>
+  <object classname="Ebi_Docs.Data.R_Column">
+    <層>1</層>
+    <位置>0 366</位置>
+    <剛性>10.000 10.000</剛性>
+  </object>
+  <object classname="Ebi_Docs.Data.R_Column">
+    <層>1</層>
+    <位置>1220 0</位置>
+    <剛性>10.000 10.000</剛性>
+  </object>
+  <object classname="Ebi_Docs.Data.R_Column">
+    <層>1</層>
+    <位置>1220 366</位置>
+    <剛性>10.000 10.000</剛性>
+  </object>
+  <object classname="Ebi_Docs.Data.WallCharaDB">
+    <名称>WAL1</名称>
+    <剛性>10.200</剛性>
+    <剛性比例減衰_実数>0</剛性比例減衰_実数>
+    <減衰係数>0</減衰係数>
+    <固有値解析に剛性を考慮するか>True</固有値解析に剛性を考慮するか>
+    <剛性及び減衰係数を単位長さ値とするか>False</剛性及び減衰係数を単位長さ値とするか>
+    <備考>外壁線</備考>
+  </object>
+  <object classname="Ebi_Docs.Data.WallCharaDB">
+    <名称>WD</名称>
+    <剛性>0.000</剛性>
+    <剛性比例減衰_実数>0</剛性比例減衰_実数>
+    <減衰係数>1</減衰係数>
+    <固有値解析に剛性を考慮するか>False</固有値解析に剛性を考慮するか>
+    <剛性及び減衰係数を単位長さ値とするか>False</剛性及び減衰係数を単位長さ値とするか>
+    <備考>壁ダンパー</備考>
+  </object>
+  <object classname="Ebi_Docs.Data.WallCharaDB">
+    <名称>WD2</名称>
+    <剛性>0.000</剛性>
+    <剛性比例減衰_実数>0</剛性比例減衰_実数>
+    <減衰係数>2</減衰係数>
+    <固有値解析に剛性を考慮するか>False</固有値解析に剛性を考慮するか>
+    <剛性及び減衰係数を単位長さ値とするか>False</剛性及び減衰係数を単位長さ値とするか>
+    <備考>皆川</備考>
+  </object>
+  <object classname="Ebi_Docs.Data.WallCharaDB">
+    <名称>WD3</名称>
+    <剛性>0.000</剛性>
+    <剛性比例減衰_実数>0</剛性比例減衰_実数>
+    <減衰係数>3</減衰係数>
+    <固有値解析に剛性を考慮するか>False</固有値解析に剛性を考慮するか>
+    <剛性及び減衰係数を単位長さ値とするか>False</剛性及び減衰係数を単位長さ値とするか>
+    <備考>test</備考>
+  </object>
+  <object classname="Ebi_Docs.Data.Wall">
+    <種類>WAL1</種類>
+    <層>1</層>
+    <位置>0 0 0 366</位置>
+    <描画の有無>False</描画の有無>
+  </object>
+  <object classname="Ebi_Docs.Data.Wall">
+    <種類>WD2</種類>
+    <層>1</層>
+    <位置>300 0 300 366</位置>
+    <描画の有無>False</描画の有無>
+  </object>
+  <object classname="Ebi_Docs.Data.MassDamper">
+    <タイプ>マスダンパー</タイプ>
+    <層>1</層>
+    <位置>0 0</位置>
+    <重量>1</重量>
+    <振動数>1 1</振動数>
+    <減衰定数>0.05 0.05</減衰定数>
+  </object>
+  <object classname="Ebi_Docs.Data.BraceDamper">
+    <層>1</層>
+    <位置>0 0</位置>
+    <方向>X</方向>
+    <剛性>0</剛性>
+    <減衰係数>1</減衰係数>
+    <描画用幅>91.5</描画用幅>
+    <描画用高さ>150</描画用高さ>
+    <配置方向に対して右側配置か>True</配置方向に対して右側配置か>
+    <固有値解析に剛性を評価するか>False</固有値解析に剛性を評価するか>
+  </object>
+</ATV>

@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/core/types.ts","./src/io/baseshape.ts","./src/io/buildingmodel.ts","./src/io/complexmodal.ts","./src/io/index.ts","./src/io/jsontobuildingmodel.ts","./src/io/modal.ts","./src/io/resp.ts","./src/io/text.ts"],"version":"5.9.3"}
