@@ -24,7 +24,7 @@ export interface UiText {
   decodeUnsupportedAction: string;
 }
 
-const APP_VERSION = "Ver.Beta01";
+const APP_VERSION = "Ver.Beta02";
 
 const TEXTS: Record<Language, UiText> = {
   ja: {
@@ -44,7 +44,7 @@ const TEXTS: Record<Language, UiText> = {
     manualTitle: `簡易マニュアル (${APP_VERSION})`,
     manualIntro: `この画面でできる基本操作です。現在バージョン: ${APP_VERSION}`,
     manualSteps: [
-      "左カードで既存データ（XML/DAT/CSV/JSON）を読み込み、判定結果を確認します。",
+      "左カードで既存データ（XML/DAT/CSV/JSON）を読み込み、判定結果（形式・文字コード・要約）を確認します。",
       "右カードへ NICE JSON を貼り付けて「XMLへ変換」を押すと BuildingModel XML を生成します。",
       "生成された XML は「XMLを保存」でローカル保存できます。",
       "表示言語とライト/ダークモードは上部ボタンからいつでも切り替えできます。",
@@ -75,7 +75,7 @@ const TEXTS: Record<Language, UiText> = {
     manualTitle: `Quick Manual (${APP_VERSION})`,
     manualIntro: `Basic operations available on this screen. Current version: ${APP_VERSION}`,
     manualSteps: [
-      "Load legacy files (XML/DAT/CSV/JSON) in the left card and inspect parse summaries.",
+      "Load legacy files (XML/DAT/CSV/JSON) in the left card and inspect parse summaries (format/encoding/metrics).",
       "Paste NICE JSON in the right card and click \"Convert to XML\" to generate BuildingModel XML.",
       "Use \"Save XML\" to download the generated XML to your local machine.",
       "Switch language and light/dark mode at any time from the top controls.",
