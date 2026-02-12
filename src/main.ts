@@ -1,12 +1,13 @@
-﻿import "./style.css";
+import "./style.css";
 import {
   convertNiceJsonToBuildingModelXml,
-  decodeText,
+  decodeTextWithMeta,
   parseBuildingModelXml,
   parseComplexModalDat,
   parseModalDat,
   parseRespCsv,
-  summarizeBuildingModel
+  summarizeBuildingModel,
+  TextDecodingError
 } from "./io";
 
 type FileType = "xml" | "modal" | "complex" | "resp" | "json" | "unknown";
@@ -33,14 +34,17 @@ interface UiText {
   switchToLight: string;
   unknownFormat: string;
   convertErrorPrefix: string;
+  decodeErrorPrefix: string;
+  decodeUnsupportedAction: string;
 }
 
 const LANGUAGE_KEY = "twist-dynamics-language";
 const THEME_KEY = "twist-dynamics-theme";
+const APP_VERSION = "Ver.Beta01";
 
 const TEXTS: Record<Language, UiText> = {
   ja: {
-    heroTitle: "Twist-Dynamics (Phase 0/1)",
+    heroTitle: `Twist-Dynamics ${APP_VERSION} (Phase 0/1)`,
     heroDescription:
       "既存フォーマットの読込検証と JSON -> BuildingModel(XML) 変換をブラウザ上で実行します。",
     parseCardTitle: "ファイル読込（XML / DAT / CSV / JSON）",
@@ -53,21 +57,25 @@ const TEXTS: Record<Language, UiText> = {
     languageLabel: "表示言語",
     openManual: "簡易マニュアル",
     closeManual: "閉じる",
-    manualTitle: "簡易マニュアル",
-    manualIntro: "この画面でできる基本操作です。",
+    manualTitle: `簡易マニュアル (${APP_VERSION})`,
+    manualIntro: `この画面でできる基本操作です。現在バージョン: ${APP_VERSION}`,
     manualSteps: [
       "左カードで既存データ（XML/DAT/CSV/JSON）を読み込み、判定結果を確認します。",
       "右カードへ NICE JSON を貼り付けて「XMLへ変換」を押すと BuildingModel XML を生成します。",
       "生成された XML は「XMLを保存」でローカル保存できます。",
-      "表示言語とライト/ダークモードは上部ボタンからいつでも切り替えできます。"
+      "表示言語とライト/ダークモードは上部ボタンからいつでも切り替えできます。",
+      "文字コードは UTF-8 / Shift_JIS / UTF-16 を自動判定します。判定不能時は再保存を促すエラーを表示します。"
     ],
     switchToDark: "ダークモード",
     switchToLight: "ライトモード",
     unknownFormat: "既存フォーマットの判定に失敗しました。",
-    convertErrorPrefix: "変換エラー:"
+    convertErrorPrefix: "変換エラー:",
+    decodeErrorPrefix: "文字コードエラー:",
+    decodeUnsupportedAction:
+      "UTF-8(BOMなし) か Shift_JIS で再保存してから再アップロードしてください。"
   },
   en: {
-    heroTitle: "Twist-Dynamics (Phase 0/1)",
+    heroTitle: `Twist-Dynamics ${APP_VERSION} (Phase 0/1)`,
     heroDescription:
       "Validate legacy file formats and run JSON -> BuildingModel(XML) conversion in the browser.",
     parseCardTitle: "Load files (XML / DAT / CSV / JSON)",
@@ -80,18 +88,22 @@ const TEXTS: Record<Language, UiText> = {
     languageLabel: "Language",
     openManual: "Quick Manual",
     closeManual: "Close",
-    manualTitle: "Quick Manual",
-    manualIntro: "Basic operations available on this screen:",
+    manualTitle: `Quick Manual (${APP_VERSION})`,
+    manualIntro: `Basic operations available on this screen. Current version: ${APP_VERSION}`,
     manualSteps: [
       "Load legacy files (XML/DAT/CSV/JSON) in the left card and inspect parse summaries.",
       "Paste NICE JSON in the right card and click \"Convert to XML\" to generate BuildingModel XML.",
       "Use \"Save XML\" to download the generated XML to your local machine.",
-      "Switch language and light/dark mode at any time from the top controls."
+      "Switch language and light/dark mode at any time from the top controls.",
+      "Character encoding is auto-detected for UTF-8, Shift_JIS, and UTF-16. If detection fails, an explicit re-save message is shown."
     ],
     switchToDark: "Dark mode",
     switchToLight: "Light mode",
     unknownFormat: "Could not identify this as a supported legacy format.",
-    convertErrorPrefix: "Conversion error:"
+    convertErrorPrefix: "Conversion error:",
+    decodeErrorPrefix: "Encoding error:",
+    decodeUnsupportedAction:
+      "Re-save the file as UTF-8 (without BOM) or Shift_JIS, then upload again."
   }
 };
 
@@ -296,16 +308,24 @@ function bootstrap(): void {
     const reports: Array<Record<string, unknown>> = [];
 
     for (const file of files) {
-      const arrayBuffer = await file.arrayBuffer();
-      const text = decodeText(arrayBuffer, "shift_jis");
-      const type = detectType(file.name, text);
-
       try {
+        const arrayBuffer = await file.arrayBuffer();
+        const decoded = decodeTextWithMeta(arrayBuffer, "shift_jis");
+        const text = decoded.text;
+        const type = detectType(file.name, text);
+
+        const reportBase: Record<string, unknown> = {
+          file: file.name,
+          encoding: decoded.encoding
+        };
+        if (decoded.hasBom) reportBase.bomRemoved = true;
+        if (decoded.warnings.length > 0) reportBase.warnings = decoded.warnings;
+
         switch (type) {
           case "xml": {
             const model = parseBuildingModelXml(text);
             reports.push({
-              file: file.name,
+              ...reportBase,
               type,
               ...summarizeBuildingModel(model)
             });
@@ -314,7 +334,7 @@ function bootstrap(): void {
           case "modal": {
             const modal = parseModalDat(text);
             reports.push({
-              file: file.name,
+              ...reportBase,
               type,
               story: modal.baseShape.story ?? null,
               modeCount: modal.modal.frequenciesHz.length,
@@ -325,7 +345,7 @@ function bootstrap(): void {
           case "complex": {
             const complex = parseComplexModalDat(text);
             reports.push({
-              file: file.name,
+              ...reportBase,
               type,
               story: complex.baseShape.story ?? null,
               modeCount: complex.modes.length,
@@ -336,7 +356,7 @@ function bootstrap(): void {
           case "resp": {
             const resp = parseRespCsv(text);
             reports.push({
-              file: file.name,
+              ...reportBase,
               type,
               rows: resp.records.length,
               columns: resp.header.length,
@@ -347,7 +367,7 @@ function bootstrap(): void {
           case "json": {
             const xml = convertNiceJsonToBuildingModelXml(text);
             reports.push({
-              file: file.name,
+              ...reportBase,
               type,
               convertedXmlLength: xml.length
             });
@@ -357,16 +377,26 @@ function bootstrap(): void {
           }
           default:
             reports.push({
-              file: file.name,
+              ...reportBase,
               type: "unknown",
               message: TEXTS[currentLanguage].unknownFormat
             });
             break;
         }
       } catch (error) {
+        if (error instanceof TextDecodingError) {
+          reports.push({
+            file: file.name,
+            type: "unknown",
+            error: `${TEXTS[currentLanguage].decodeErrorPrefix} ${error.message}`,
+            action: TEXTS[currentLanguage].decodeUnsupportedAction
+          });
+          continue;
+        }
+
         reports.push({
           file: file.name,
-          type,
+          type: "unknown",
           error: error instanceof Error ? error.message : String(error)
         });
       }
