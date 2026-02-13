@@ -7,7 +7,7 @@
 この段階では、既存ファイル互換の I/O と差分検証を優先しています。
 
 ## 実装済み
-- `BuildingModel(XML)` パーサ
+- `BuildingModel(JSON)` パーサ
 - `Modal(.dat)` パーサ
 - `ComplexModal(.dat)` パーサ
 - `RespResult(.csv)` パーサ
@@ -26,6 +26,13 @@
 - BOM 付き UTF-8/UTF-16 は読込時に BOM を除去して処理する
 - 判定不能、または安全にデコードできない場合は処理を中止し、`UTF-8(BOMなし) か Shift_JIS で再保存して再アップロード` するようエラー表示する
 
+## BuildingModel JSON 仕様
+- ルートは `format` / `version` / `model` を必須とする
+- `format`: `twist-dynamics/building-model`
+- `version`: `1`
+- `model`: `src/core/types.ts` の `BuildingModel` 構造
+- XML モデル入力は非対応（JSON へ変換して読込）
+
 ## サードパーティライセンス
 - 利用ライブラリのライセンス一覧は `THIRD_PARTY_LICENSES.md` を参照
 - runtime 配布対象（`fast-xml-parser`, `strnum`）は MIT ライセンス表記を同ファイルに記載
@@ -34,6 +41,8 @@
 - アプリ内の「簡易マニュアル」ボタンから表示
 - 選択言語（日本語 / English）に連動して内容を切替
 - 本バージョン表記: `Ver.Beta02`
+- BuildingModel の XML 入力は非対応（JSON 変換案内を表示）
+- 入力不整合は「形式エラー」、文字コード問題は「文字コードエラー」として表示
 
 ## セットアップ
 ```bash

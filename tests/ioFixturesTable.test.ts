@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { parseBuildingModelXml, parseComplexModalDat, parseModalDat, parseRespCsv, serializeBuildingModelXml } from "../src/io";
+import {
+  parseBuildingModelJson,
+  parseComplexModalDat,
+  parseModalDat,
+  parseRespCsv,
+  serializeBuildingModelJson
+} from "../src/io";
 import { readFixture } from "./helpers";
 
 interface ParserFixtureCase {
@@ -10,10 +16,10 @@ interface ParserFixtureCase {
 
 const parserCases: ParserFixtureCase[] = [
   {
-    name: "parses BuildingModel XML fixture",
-    fixturePath: "reference/building-model/Test_simple.xml",
+    name: "parses BuildingModel JSON fixture",
+    fixturePath: "reference/building-model/Test_simple.json",
     verify: (text) => {
-      const model = parseBuildingModelXml(text);
+      const model = parseBuildingModelJson(text);
       expect(model.structInfo?.massN).toBe(1);
       expect(model.structInfo?.sType).toBe("R");
       expect(model.floors.length).toBeGreaterThanOrEqual(2);
@@ -66,10 +72,10 @@ describe("I/O fixture parser table", () => {
   }
 
   it("keeps key BuildingModel values across parse -> serialize -> parse", () => {
-    const xml = readFixture("reference/building-model/Test_simple.xml");
-    const first = parseBuildingModelXml(xml);
-    const serialized = serializeBuildingModelXml(first);
-    const second = parseBuildingModelXml(serialized);
+    const json = readFixture("reference/building-model/Test_simple.json");
+    const first = parseBuildingModelJson(json);
+    const serialized = serializeBuildingModelJson(first);
+    const second = parseBuildingModelJson(serialized);
 
     expect(second.structInfo?.massN).toBe(first.structInfo?.massN);
     expect(second.structInfo?.sType).toBe(first.structInfo?.sType);
