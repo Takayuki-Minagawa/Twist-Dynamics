@@ -2,7 +2,7 @@
 
 このフォルダには C# 実装の基準データを配置します。
 
-- `building-model/Test_simple.xml`
+- `building-model/Test_simple.json`
 - `modal/test_01_eig.dat`
 - `complex/Test_simple_ceig.dat`
 - `resp/test.csv`

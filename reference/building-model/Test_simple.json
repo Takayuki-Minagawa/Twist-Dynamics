@@ -1,0 +1,207 @@
+{
+  "format": "twist-dynamics/building-model",
+  "version": 1,
+  "model": {
+    "structInfo": {
+      "massN": 1,
+      "sType": "R",
+      "zLevel": [0, 300],
+      "weight": [100],
+      "wMoment": [13519633.33],
+      "wCenter": [
+        {
+          "x": 610,
+          "y": 183
+        }
+      ]
+    },
+    "floors": [
+      {
+        "layer": 1,
+        "pos": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 366
+          },
+          {
+            "x": 1220,
+            "y": 366
+          },
+          {
+            "x": 1220,
+            "y": 0
+          }
+        ]
+      },
+      {
+        "layer": 2,
+        "pos": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 366
+          },
+          {
+            "x": 1220,
+            "y": 366
+          },
+          {
+            "x": 1220,
+            "y": 0
+          }
+        ]
+      }
+    ],
+    "columns": [
+      {
+        "layer": 1,
+        "pos": {
+          "x": 0,
+          "y": 0
+        },
+        "kx": 10,
+        "ky": 10
+      },
+      {
+        "layer": 1,
+        "pos": {
+          "x": 0,
+          "y": 366
+        },
+        "kx": 10,
+        "ky": 10
+      },
+      {
+        "layer": 1,
+        "pos": {
+          "x": 1220,
+          "y": 0
+        },
+        "kx": 10,
+        "ky": 10
+      },
+      {
+        "layer": 1,
+        "pos": {
+          "x": 1220,
+          "y": 366
+        },
+        "kx": 10,
+        "ky": 10
+      }
+    ],
+    "wallCharaDB": [
+      {
+        "name": "WAL1",
+        "k": 10.2,
+        "h": 0,
+        "c": 0,
+        "isEigenEffectK": true,
+        "isKCUnitChara": false,
+        "memo": "外壁線"
+      },
+      {
+        "name": "WD",
+        "k": 0,
+        "h": 0,
+        "c": 1,
+        "isEigenEffectK": false,
+        "isKCUnitChara": false,
+        "memo": "壁ダンパー"
+      },
+      {
+        "name": "WD2",
+        "k": 0,
+        "h": 0,
+        "c": 2,
+        "isEigenEffectK": false,
+        "isKCUnitChara": false,
+        "memo": "皆川"
+      },
+      {
+        "name": "WD3",
+        "k": 0,
+        "h": 0,
+        "c": 3,
+        "isEigenEffectK": false,
+        "isKCUnitChara": false,
+        "memo": "test"
+      }
+    ],
+    "walls": [
+      {
+        "name": "WAL1",
+        "layer": 1,
+        "pos": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 366
+          }
+        ],
+        "isVisible": false
+      },
+      {
+        "name": "WD2",
+        "layer": 1,
+        "pos": [
+          {
+            "x": 300,
+            "y": 0
+          },
+          {
+            "x": 300,
+            "y": 366
+          }
+        ],
+        "isVisible": false
+      }
+    ],
+    "massDampers": [
+      {
+        "name": "マスダンパー",
+        "layer": 1,
+        "pos": {
+          "x": 0,
+          "y": 0
+        },
+        "weight": 1,
+        "freq": {
+          "x": 1,
+          "y": 1
+        },
+        "h": {
+          "x": 0.05,
+          "y": 0.05
+        }
+      }
+    ],
+    "braceDampers": [
+      {
+        "layer": 1,
+        "pos": {
+          "x": 0,
+          "y": 0
+        },
+        "direct": "X",
+        "k": 0,
+        "c": 1,
+        "width": 91.5,
+        "height": 150,
+        "isLightPos": true,
+        "isEigenEffectK": false
+      }
+    ],
+    "dxPanels": []
+  }
+}
