@@ -8,6 +8,7 @@
 
 ## 実装済み
 - `BuildingModel(JSON)` パーサ
+- `BuildingModel(XML)` パーサ
 - `Modal(.dat)` パーサ
 - `ComplexModal(.dat)` パーサ
 - `RespResult(.csv)` パーサ
@@ -15,6 +16,7 @@
   - 比較ロジックは `src/core/compare.ts` へ分離
   - `--format json` による構造化出力をサポート
 - 簡易ブラウザ UI（ローカルファイル読込と互換確認）
+- 入力モデル作成フォーム（主要項目入力 + JSON 生成/保存）
 - 多言語 UI（日本語 / English）
 - 簡易マニュアル表示（言語連動）
 - ライト / ダークモード切替
@@ -26,12 +28,13 @@
 - BOM 付き UTF-8/UTF-16 は読込時に BOM を除去して処理する
 - 判定不能、または安全にデコードできない場合は処理を中止し、`UTF-8(BOMなし) か Shift_JIS で再保存して再アップロード` するようエラー表示する
 
-## BuildingModel JSON 仕様
+## BuildingModel 仕様
 - ルートは `format` / `version` / `model` を必須とする
 - `format`: `twist-dynamics/building-model`
 - `version`: `1`
 - `model`: `src/core/types.ts` の `BuildingModel` 構造
-- XML モデル入力は非対応（JSON へ変換して読込）
+- JSON / XML の両方を入力可能
+- 入力時に壁方向（X/Y軸のみ）や壁特性参照整合などを検証
 
 ## サードパーティライセンス
 - 利用ライブラリのライセンス一覧は `THIRD_PARTY_LICENSES.md` を参照
@@ -41,7 +44,8 @@
 - アプリ内の「簡易マニュアル」ボタンから表示
 - 選択言語（日本語 / English）に連動して内容を切替
 - 本バージョン表記: `Ver1.0.0`
-- BuildingModel の XML 入力は非対応（JSON 変換案内を表示）
+- BuildingModel の JSON / XML 読込に対応
+- 入力モデル作成フォームから JSON 生成・保存に対応
 - 入力不整合は「形式エラー」、文字コード問題は「文字コードエラー」として表示
 
 ## セットアップ
@@ -57,6 +61,11 @@ npm run dev
 ## テスト
 ```bash
 npm run test
+```
+
+## エンコーディング検査
+```bash
+npm run check:encoding
 ```
 
 ## 比較スクリプト

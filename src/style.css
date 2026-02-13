@@ -94,7 +94,7 @@ body {
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-top: 16px;
 }
@@ -109,6 +109,12 @@ body {
 .card h2 {
   margin: 0 0 12px;
   font-size: 1rem;
+}
+
+.sub-title {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .actions {
@@ -186,6 +192,27 @@ textarea {
   resize: vertical;
   font-family: "Consolas", "Meiryo UI", monospace;
   font-size: 0.85rem;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) 1fr;
+  gap: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.editor-grid textarea {
+  min-height: 64px;
+}
+
+#editorFloors,
+#editorColumns,
+#editorWallCharas,
+#editorWalls,
+#editorMassDampers,
+#editorBraceDampers,
+#editorDxPanels {
+  min-height: 96px;
 }
 
 pre {

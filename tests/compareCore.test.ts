@@ -58,4 +58,11 @@ describe("compare core", () => {
     });
     expect(issues.length).toBe(0);
   });
+
+  it("reports header label mismatch for response comparison", () => {
+    const referenceText = readFixture("reference/resp/test.csv");
+    const targetText = referenceText.replace("Time(s),", "TimeX,");
+    const result = compareByType("resp", referenceText, targetText);
+    expect(result.issues.some((issue) => issue.kind === "label_mismatch")).toBe(true);
+  });
 });

@@ -1,0 +1,80 @@
+{
+  "format": "twist-dynamics/building-model",
+  "version": 1,
+  "model": {
+    "structInfo": {
+      "massN": 2,
+      "sType": "R",
+      "zLevel": [0, 300, 600],
+      "weight": [120, 110],
+      "wMoment": [22000, 21000],
+      "wCenter": [
+        { "x": 500, "y": 250 },
+        { "x": 500, "y": 250 }
+      ]
+    },
+    "floors": [
+      {
+        "layer": 1,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 500 },
+          { "x": 1000, "y": 500 },
+          { "x": 1000, "y": 0 }
+        ]
+      },
+      {
+        "layer": 2,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 500 },
+          { "x": 1000, "y": 500 },
+          { "x": 1000, "y": 0 }
+        ]
+      },
+      {
+        "layer": 3,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 500 },
+          { "x": 1000, "y": 500 },
+          { "x": 1000, "y": 0 }
+        ]
+      }
+    ],
+    "columns": [
+      { "layer": 1, "pos": { "x": 0, "y": 0 }, "kx": 20, "ky": 20 },
+      { "layer": 1, "pos": { "x": 1000, "y": 0 }, "kx": 20, "ky": 20 },
+      { "layer": 2, "pos": { "x": 0, "y": 500 }, "kx": 18, "ky": 18 },
+      { "layer": 2, "pos": { "x": 1000, "y": 500 }, "kx": 18, "ky": 18 }
+    ],
+    "wallCharaDB": [
+      {
+        "name": "W_STD",
+        "k": 12,
+        "h": 0.02,
+        "c": 0,
+        "isEigenEffectK": true,
+        "isKCUnitChara": false,
+        "memo": "standard"
+      }
+    ],
+    "walls": [
+      {
+        "name": "W_STD",
+        "layer": 1,
+        "pos": [{ "x": 0, "y": 0 }, { "x": 0, "y": 500 }],
+        "isVisible": true
+      },
+      {
+        "name": "W_STD",
+        "layer": 2,
+        "pos": [{ "x": 500, "y": 0 }, { "x": 500, "y": 500 }],
+        "isVisible": true
+      }
+    ],
+    "massDampers": [],
+    "braceDampers": [],
+    "dxPanels": []
+  }
+}

@@ -1,6 +1,6 @@
 import type { ComplexModalFile, ComplexMode } from "../core/types";
 import { parseBaseShapeInfo } from "./baseShape";
-import { extractMarkedSection, toTrimmedLines } from "./text";
+import { extractMarkedSection, FormatParseError, toTrimmedLines } from "./text";
 
 const freqRegex =
   /^\s*(\d+)次\s+([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\s+([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?).*?\(([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?),\s*([+\-]?\d+(?:\.\d+)?(?:[Ee][+\-]?\d+)?)\)/;
@@ -28,15 +28,19 @@ export function parseComplexModalDat(text: string): ComplexModalFile {
 
     const freqMatch = line.match(freqRegex);
     if (freqMatch) {
-      modes.push({
+      currentMode = {
         mode: Number(freqMatch[1]),
         frequencyHz: Number(freqMatch[2]),
         dampingRatioPercent: Number(freqMatch[3]),
         eigenValueReal: Number(freqMatch[4]),
         eigenValueImag: Number(freqMatch[5]),
         vectors: []
-      });
+      };
+      modes.push(currentMode);
       continue;
+    }
+    if (/^\d+次/.test(line)) {
+      throw new FormatParseError(`ComplexModalResult: invalid mode row "${line}".`);
     }
 
     const modeHeader = line.match(/^\*\*\s*(\d+)次$/);
@@ -55,6 +59,19 @@ export function parseComplexModalDat(text: string): ComplexModalFile {
         complexReal: Number(vecMatch[4]),
         complexImag: Number(vecMatch[5])
       });
+      continue;
+    }
+    if (/^[A-Z]{2}_[0-9]+/.test(line)) {
+      throw new FormatParseError(`ComplexModalResult: invalid vector row "${line}".`);
+    }
+  }
+
+  if (modes.length === 0) {
+    throw new FormatParseError("ComplexModalResult: mode rows are missing.");
+  }
+  for (const mode of modes) {
+    if (mode.vectors.length === 0) {
+      throw new FormatParseError(`ComplexModalResult: vectors are missing for mode ${mode.mode}.`);
     }
   }
 

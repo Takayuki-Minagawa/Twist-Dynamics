@@ -1,0 +1,57 @@
+{
+  "format": "twist-dynamics/building-model",
+  "version": 1,
+  "model": {
+    "structInfo": {
+      "massN": 1,
+      "sType": "R",
+      "zLevel": [0, 250],
+      "weight": [80],
+      "wMoment": [5000],
+      "wCenter": [{ "x": 0, "y": 0 }]
+    },
+    "floors": [
+      {
+        "layer": 1,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 100 },
+          { "x": 100, "y": 100 }
+        ]
+      },
+      {
+        "layer": 2,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 100 },
+          { "x": 100, "y": 100 }
+        ]
+      }
+    ],
+    "columns": [
+      { "layer": 1, "pos": { "x": 0, "y": 0 }, "kx": 5, "ky": 5 }
+    ],
+    "wallCharaDB": [
+      {
+        "name": "W_MIN",
+        "k": 1,
+        "h": 0,
+        "c": 0,
+        "isEigenEffectK": true,
+        "isKCUnitChara": false,
+        "memo": ""
+      }
+    ],
+    "walls": [
+      {
+        "name": "W_MIN",
+        "layer": 1,
+        "pos": [{ "x": 0, "y": 0 }, { "x": 0, "y": 100 }],
+        "isVisible": true
+      }
+    ],
+    "massDampers": [],
+    "braceDampers": [],
+    "dxPanels": []
+  }
+}

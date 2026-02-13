@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseBuildingModelJson,
+  parseBuildingModelXml,
   parseComplexModalDat,
   parseModalDat,
   parseRespCsv,
@@ -26,6 +27,45 @@ const parserCases: ParserFixtureCase[] = [
       expect(model.columns.length).toBeGreaterThanOrEqual(4);
       expect(model.walls.length).toBeGreaterThanOrEqual(1);
       expect(model.wallCharaDB.length).toBeGreaterThanOrEqual(1);
+    }
+  },
+  {
+    name: "parses BuildingModel XML fixture",
+    fixturePath: "reference/building-model/Test_simple.xml",
+    verify: (text) => {
+      const model = parseBuildingModelXml(text);
+      expect(model.structInfo?.massN).toBe(1);
+      expect(model.structInfo?.sType).toBe("R");
+      expect(model.columns.length).toBeGreaterThanOrEqual(4);
+      expect(model.massDampers.length).toBeGreaterThanOrEqual(1);
+    }
+  },
+  {
+    name: "parses BuildingModel R no-tmd fixture",
+    fixturePath: "reference/building-model/R_no_tmd.json",
+    verify: (text) => {
+      const model = parseBuildingModelJson(text);
+      expect(model.structInfo?.sType).toBe("R");
+      expect(model.massDampers.length).toBe(0);
+    }
+  },
+  {
+    name: "parses BuildingModel DX with tmd fixture",
+    fixturePath: "reference/building-model/DX_with_tmd.json",
+    verify: (text) => {
+      const model = parseBuildingModelJson(text);
+      expect(model.structInfo?.sType).toBe("DX");
+      expect(model.massDampers.length).toBeGreaterThanOrEqual(1);
+      expect(model.dxPanels.length).toBeGreaterThanOrEqual(1);
+    }
+  },
+  {
+    name: "parses BuildingModel boundary minimal fixture",
+    fixturePath: "reference/building-model/Boundary_minimal.json",
+    verify: (text) => {
+      const model = parseBuildingModelJson(text);
+      expect(model.structInfo?.massN).toBe(1);
+      expect(model.floors.length).toBe(2);
     }
   },
   {

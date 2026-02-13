@@ -1,6 +1,12 @@
 import type { ModalDatFile } from "../core/types";
 import { parseBaseShapeInfo } from "./baseShape";
-import { extractMarkedSection, splitCsvLikeLine, toNumberList, toTrimmedLines } from "./text";
+import {
+  extractMarkedSection,
+  FormatParseError,
+  splitCsvLikeLine,
+  toNumberListStrict,
+  toTrimmedLines
+} from "./text";
 
 function parseEffectiveMassRatio(
   lines: string[],
@@ -8,7 +14,7 @@ function parseEffectiveMassRatio(
 ): number[] {
   const index = lines.findIndex((line) => line.startsWith(`有効質量比${label}`));
   if (index < 0 || index + 1 >= lines.length) return [];
-  return toNumberList(splitCsvLikeLine(lines[index + 1]));
+  return toNumberListStrict(splitCsvLikeLine(lines[index + 1]), `ModalResult.有効質量比${label}`);
 }
 
 export function parseModalDat(text: string): ModalDatFile {
@@ -22,32 +28,50 @@ export function parseModalDat(text: string): ModalDatFile {
   const modalLines = section.body;
 
   const freqIndex = modalLines.findIndex((line) => line.includes("固有振動数"));
-  const frequenciesHz =
-    freqIndex >= 0 && freqIndex + 2 < modalLines.length
-      ? toNumberList(splitCsvLikeLine(modalLines[freqIndex + 2]).slice(1))
-      : [];
+  if (freqIndex < 0 || freqIndex + 2 >= modalLines.length) {
+    throw new FormatParseError('ModalResult: "固有振動数" section is missing.');
+  }
+  const frequenciesHz = toNumberListStrict(
+    splitCsvLikeLine(modalLines[freqIndex + 2]).slice(1),
+    "ModalResult.固有振動数"
+  );
 
-  const pfxLine = modalLines.find((line) => line.startsWith("刺激係数X")) ?? "";
-  const pfyLine = modalLines.find((line) => line.startsWith("刺激係数Y")) ?? "";
-  const participationFactorX = toNumberList(splitCsvLikeLine(pfxLine).slice(1));
-  const participationFactorY = toNumberList(splitCsvLikeLine(pfyLine).slice(1));
+  const pfxLine = modalLines.find((line) => line.startsWith("刺激係数X"));
+  const pfyLine = modalLines.find((line) => line.startsWith("刺激係数Y"));
+  if (!pfxLine || !pfyLine) {
+    throw new FormatParseError("ModalResult: participation factor rows are missing.");
+  }
+  const participationFactorX = toNumberListStrict(
+    splitCsvLikeLine(pfxLine).slice(1),
+    "ModalResult.刺激係数X"
+  );
+  const participationFactorY = toNumberListStrict(
+    splitCsvLikeLine(pfyLine).slice(1),
+    "ModalResult.刺激係数Y"
+  );
 
   const effectiveMassRatioX = parseEffectiveMassRatio(modalLines, "X");
   const effectiveMassRatioY = parseEffectiveMassRatio(modalLines, "Y");
 
   const eigenIndex = modalLines.findIndex((line) => line.includes("固有ベクトル"));
+  if (eigenIndex < 0) {
+    throw new FormatParseError('ModalResult: "固有ベクトル" section is missing.');
+  }
   const eigenVectors: Array<{ label: string; values: number[] }> = [];
-  if (eigenIndex >= 0) {
-    for (let i = eigenIndex + 2; i < modalLines.length; i++) {
-      const line = modalLines[i].trim();
-      if (line.length === 0 || line.startsWith("#")) break;
-      const tokens = splitCsvLikeLine(line);
-      if (tokens.length < 2) continue;
-      eigenVectors.push({
-        label: tokens[0],
-        values: toNumberList(tokens.slice(1))
-      });
+  for (let i = eigenIndex + 2; i < modalLines.length; i++) {
+    const line = modalLines[i].trim();
+    if (line.length === 0 || line.startsWith("#")) break;
+    const tokens = splitCsvLikeLine(line);
+    if (tokens.length < 2) {
+      throw new FormatParseError(`ModalResult: invalid eigen vector row at line ${i + 1}.`);
     }
+    eigenVectors.push({
+      label: tokens[0],
+      values: toNumberListStrict(tokens.slice(1), `ModalResult.固有ベクトル.${tokens[0]}`)
+    });
+  }
+  if (eigenVectors.length === 0) {
+    throw new FormatParseError("ModalResult: eigen vector rows are missing.");
   }
 
   return {

@@ -225,3 +225,31 @@ export function toNumberList(tokens: string[]): number[] {
     .map((token) => Number(token))
     .filter((value) => Number.isFinite(value));
 }
+
+export function parseNumberToken(token: string, label: string): number {
+  const trimmed = token.trim();
+  if (trimmed.length === 0) {
+    throw new FormatParseError(`${label}: empty value is not allowed.`);
+  }
+  const value = Number(trimmed);
+  if (!Number.isFinite(value)) {
+    throw new FormatParseError(`${label}: "${token}" is not a valid number.`);
+  }
+  return value;
+}
+
+interface StrictNumberListOptions {
+  allowEmpty?: boolean;
+}
+
+export function toNumberListStrict(
+  tokens: string[],
+  label: string,
+  options: StrictNumberListOptions = {}
+): number[] {
+  const allowEmpty = options.allowEmpty ?? false;
+  if (!allowEmpty && tokens.length === 0) {
+    throw new FormatParseError(`${label}: value list is empty.`);
+  }
+  return tokens.map((token, index) => parseNumberToken(token, `${label}[${index}]`));
+}

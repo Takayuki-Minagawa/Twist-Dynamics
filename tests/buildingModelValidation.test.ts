@@ -156,6 +156,44 @@ describe("BuildingModel JSON validation", () => {
         return JSON.stringify(doc);
       },
       expectedMessage: "must contain at least 3 points"
+    },
+    {
+      name: "rejects diagonal wall",
+      buildText: () => {
+        const doc = createValidDocument();
+        doc.model.walls[0].pos = [
+          { x: 0, y: 0 },
+          { x: 100, y: 100 }
+        ];
+        return JSON.stringify(doc);
+      },
+      expectedMessage: "diagonal is not allowed"
+    },
+    {
+      name: "rejects wall reference not found in wallCharaDB",
+      buildText: () => {
+        const doc = createValidDocument();
+        doc.model.walls[0].name = "UNKNOWN";
+        return JSON.stringify(doc);
+      },
+      expectedMessage: "is not found in wallCharaDB"
+    },
+    {
+      name: "rejects duplicate wallChara names",
+      buildText: () => {
+        const doc = createValidDocument();
+        doc.model.wallCharaDB.push({
+          name: "W1",
+          k: 20,
+          h: 0,
+          c: 0,
+          isEigenEffectK: true,
+          isKCUnitChara: false,
+          memo: ""
+        });
+        return JSON.stringify(doc);
+      },
+      expectedMessage: "is duplicated"
     }
   ];
 
