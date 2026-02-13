@@ -1,7 +1,7 @@
 # Twist-Dynamics
 
 ## バージョン
-- `Ver.1.0.1`
+- `Ver.1.0.2`
 
 `HH捩れ振動評価` の Web 移植（Phase 0/1）向け実装です。  
 この段階では、既存ファイル互換の I/O と差分検証を優先しています。
@@ -21,6 +21,8 @@
 - 解析実行 CLI（`scripts/analyze.ts`）
   - `BuildingModel` (JSON/XML) から `Modal/ComplexModal/RespResult` を出力
   - モードベクトルは従来と同様に読みやすい正規化（モード毎最大振幅=1）
+- 解析精度チェック CLI（`scripts/accuracy-check.ts`）
+  - C#基準ファイルとの差分判定レポートを `reference/accuracy/` に出力
 - 簡易ブラウザ UI（ローカルファイル読込と互換確認）
 - 入力モデル作成フォーム（主要項目入力 + JSON 生成/保存）
 - 多言語 UI（日本語 / English）
@@ -49,7 +51,7 @@
 ## 簡易マニュアル
 - アプリ内の「簡易マニュアル」ボタンから表示
 - 選択言語（日本語 / English）に連動して内容を切替
-- 本バージョン表記: `Ver.1.0.1`
+- 本バージョン表記: `Ver.1.0.2`
 - BuildingModel の JSON / XML 読込に対応
 - 入力モデル作成フォームから JSON 生成・保存に対応
 - 入力不整合は「形式エラー」、文字コード問題は「文字コードエラー」として表示
@@ -93,6 +95,19 @@ npm run analyze -- --type complex --input reference/building-model/Test_simple.j
 # 時刻歴応答解析 (RespResult CSV)
 npm run analyze -- --type resp --input reference/building-model/Test_simple.json --wave Work/wave.csv --output Work/resp_result.csv
 ```
+
+## 解析精度チェック (#25)
+```bash
+# レポート生成（失敗ケースがあってもレポートは出力）
+npm run check:accuracy
+
+# 失敗ケースがあると終了コード1
+npm run check:accuracy -- --strict
+```
+
+- 出力JSON: `reference/accuracy/accuracy-report.json`
+- 出力Markdown: `reference/accuracy/accuracy-report.md`
+- 生成データ: `reference/accuracy/generated/*.dat|*.csv`
 
 ## ビルド
 ```bash

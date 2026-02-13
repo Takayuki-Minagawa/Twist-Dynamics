@@ -135,10 +135,14 @@ export function serializeModalDat(data: ModalDatFile): string {
   lines.push(`,${frequencies.map(formatNumber).join(",")}`);
   lines.push(`刺激係数X,${data.modal.participationFactorX.map(formatNumber).join(",")}`);
   lines.push(`刺激係数Y,${data.modal.participationFactorY.map(formatNumber).join(",")}`);
-  lines.push("有効質量比X");
-  lines.push(data.modal.effectiveMassRatioX.map(formatNumber).join(","));
-  lines.push("有効質量比Y");
-  lines.push(data.modal.effectiveMassRatioY.map(formatNumber).join(","));
+  if (data.modal.effectiveMassRatioX.length > 0) {
+    lines.push("有効質量比X");
+    lines.push(data.modal.effectiveMassRatioX.map(formatNumber).join(","));
+  }
+  if (data.modal.effectiveMassRatioY.length > 0) {
+    lines.push("有効質量比Y");
+    lines.push(data.modal.effectiveMassRatioY.map(formatNumber).join(","));
+  }
   lines.push("");
   lines.push("〇固有ベクトル");
   lines.push(formatModeHeader(modeCount));

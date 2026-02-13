@@ -1,0 +1,315 @@
+{
+  "generatedAt": "2026-02-13T14:35:12.745Z",
+  "summary": {
+    "totalCases": 3,
+    "passCases": 2,
+    "failCases": 1,
+    "overall": "FAIL"
+  },
+  "cases": [
+    {
+      "id": "CASE-01",
+      "title": "実固有値 (C#基準DAT -> Web再読込/再出力)",
+      "type": "roundtrip",
+      "referencePath": "reference/modal/test_01_eig.dat",
+      "targetPath": "reference/accuracy/generated/modal_roundtrip_web.dat",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "実固有値: 固有振動数(Hz)",
+          "thresholdRel": 0.01,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 9,
+          "targetCount": 9,
+          "comparedCount": 9,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "実固有値: 刺激係数X",
+          "thresholdRel": 0.03,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 9,
+          "targetCount": 9,
+          "comparedCount": 9,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "実固有値: 刺激係数Y",
+          "thresholdRel": 0.03,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 9,
+          "targetCount": 9,
+          "comparedCount": 9,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "実固有値: 有効質量比X",
+          "thresholdRel": 0.03,
+          "status": "SKIP",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 0,
+          "targetCount": 0,
+          "comparedCount": 0,
+          "note": "比較対象データなし"
+        },
+        {
+          "name": "実固有値: 有効質量比Y",
+          "thresholdRel": 0.03,
+          "status": "SKIP",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 0,
+          "targetCount": 0,
+          "comparedCount": 0,
+          "note": "比較対象データなし"
+        },
+        {
+          "name": "実固有値: 固有ベクトルラベル",
+          "thresholdRel": null,
+          "status": "PASS",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 9,
+          "targetCount": 9,
+          "comparedCount": 9,
+          "note": "一致"
+        },
+        {
+          "name": "実固有値: 固有ベクトル主要成分",
+          "thresholdRel": 0.03,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 81,
+          "targetCount": 81,
+          "comparedCount": 81,
+          "note": "許容範囲内"
+        }
+      ],
+      "notes": [
+        "C#基準DATをWeb I/Oで再読込し、再出力結果と比較。",
+        "解析計算ではなく既存フォーマット互換と指標抽出の再現性を確認。"
+      ]
+    },
+    {
+      "id": "CASE-02",
+      "title": "複素固有値 (C#基準DAT vs Web解析)",
+      "type": "analysis",
+      "referencePath": "reference/complex/Test_simple_ceig.dat",
+      "targetPath": "reference/accuracy/generated/complex_analysis_web.dat",
+      "status": "FAIL",
+      "metrics": [
+        {
+          "name": "複素固有値: モード番号",
+          "thresholdRel": 0,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "複素固有値: 固有振動数(Hz)",
+          "thresholdRel": 0.01,
+          "status": "FAIL",
+          "maxRel": 0.12202877227399056,
+          "maxAbs": 0.7464500000000003,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "最大相対誤差 1.220e-1 > 1.000e-2"
+        },
+        {
+          "name": "複素固有値: 減衰比(%)",
+          "thresholdRel": 0.03,
+          "status": "FAIL",
+          "maxRel": 0.8927997126870488,
+          "maxAbs": 22.070083,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "最大相対誤差 8.928e-1 > 3.000e-2"
+        },
+        {
+          "name": "複素固有値: 固有値実部",
+          "thresholdRel": 0.03,
+          "status": "FAIL",
+          "maxRel": 0.8969956468469868,
+          "maxAbs": 4.970150621675414,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "最大相対誤差 8.970e-1 > 3.000e-2"
+        },
+        {
+          "name": "複素固有値: 固有値虚部",
+          "thresholdRel": 0.01,
+          "status": "FAIL",
+          "maxRel": 0.12200969091325074,
+          "maxAbs": 4.689248679793302,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "最大相対誤差 1.220e-1 > 1.000e-2"
+        },
+        {
+          "name": "複素モード: 正規化振幅",
+          "thresholdRel": 0.05,
+          "status": "FAIL",
+          "maxRel": 1,
+          "maxAbs": 1,
+          "referenceCount": 9,
+          "targetCount": 9,
+          "comparedCount": 9,
+          "note": "最大相対誤差 1.000e+0 > 5.000e-2"
+        },
+        {
+          "name": "複素モード: 位相角(rad)",
+          "thresholdRel": 0.05,
+          "status": "FAIL",
+          "maxRel": 1.837580569476299,
+          "maxAbs": 3.2777089999999998,
+          "referenceCount": 9,
+          "targetCount": 9,
+          "comparedCount": 9,
+          "note": "最大相対誤差 1.838e+0 > 5.000e-2"
+        },
+        {
+          "name": "複素モード: ベクトル成分ラベル(Mode 1)",
+          "thresholdRel": null,
+          "status": "PASS",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "一致"
+        },
+        {
+          "name": "複素モード: ベクトル成分ラベル(Mode 2)",
+          "thresholdRel": null,
+          "status": "PASS",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "一致"
+        },
+        {
+          "name": "複素モード: ベクトル成分ラベル(Mode 3)",
+          "thresholdRel": null,
+          "status": "PASS",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "一致"
+        }
+      ],
+      "notes": [
+        "入力モデル: reference/building-model/Test_simple.json",
+        "Web解析は state-space + `mathjs.eigs` 実装を使用。"
+      ]
+    },
+    {
+      "id": "CASE-03",
+      "title": "時刻歴 (C#基準CSV -> Web再読込/再出力)",
+      "type": "roundtrip",
+      "referencePath": "reference/resp/test.csv",
+      "targetPath": "reference/accuracy/generated/resp_roundtrip_web.csv",
+      "status": "PASS",
+      "metrics": [
+        {
+          "name": "時刻歴: 時刻列整合",
+          "thresholdRel": 0,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 6001,
+          "targetCount": 6001,
+          "comparedCount": 6001,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "時刻歴: ヘッダ整合",
+          "thresholdRel": null,
+          "status": "PASS",
+          "maxRel": null,
+          "maxAbs": null,
+          "referenceCount": 25,
+          "targetCount": 25,
+          "comparedCount": 25,
+          "note": "一致"
+        },
+        {
+          "name": "時刻歴: 最大変位(主要点)",
+          "thresholdRel": 0.05,
+          "status": "PASS",
+          "maxRel": 6.593536067738555e-11,
+          "maxAbs": 3.957598693205e-10,
+          "referenceCount": 11,
+          "targetCount": 11,
+          "comparedCount": 11,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "時刻歴: 最大加速度(主要点)",
+          "thresholdRel": 0.05,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 11,
+          "targetCount": 11,
+          "comparedCount": 11,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "時刻歴: 代表波形(DX_R,DY_R)",
+          "thresholdRel": 0.05,
+          "status": "PASS",
+          "maxRel": 0.00007966234359688425,
+          "maxAbs": 5.000000413701855e-10,
+          "referenceCount": 12002,
+          "targetCount": 12002,
+          "comparedCount": 12002,
+          "note": "許容範囲内"
+        },
+        {
+          "name": "時刻歴: メタ情報(質点数,dt,ダンパー数)",
+          "thresholdRel": 0,
+          "status": "PASS",
+          "maxRel": 0,
+          "maxAbs": 0,
+          "referenceCount": 3,
+          "targetCount": 3,
+          "comparedCount": 3,
+          "note": "許容範囲内"
+        }
+      ],
+      "notes": [
+        "C#基準CSVをWeb I/Oで再読込し、最大応答・代表波形・時刻列整合を確認。",
+        "解析計算での再現比較には基準CSVに対応する入力波データが別途必要。"
+      ]
+    }
+  ],
+  "outOfToleranceAnalysis": [
+    "CASE-02: 複素固有値: 固有振動数(Hz) (最大相対誤差 1.220e-1 > 1.000e-2) / 複素固有値: 減衰比(%) (最大相対誤差 8.928e-1 > 3.000e-2) / 複素固有値: 固有値実部 (最大相対誤差 8.970e-1 > 3.000e-2)",
+    "CASE-02の主要因: C#側の複素モード選別・減衰行列規約と、Web側(state-space + eigs)のモード抽出条件の差が大きい。"
+  ],
+  "improvementPlan": [
+    "C#基準の入力セットを追加: 実固有値/時刻歴に対し、モデル+波形の対応データを reference 配下へ整備する。",
+    "検証自動化: `npm run check:accuracy` をCIに追加し、レポートをアーティファクト化する。",
+    "複素固有値の整合改善: モード対応付け(MAC等)と減衰行列の組成規約をC#実装に合わせて調整する。"
+  ]
+}

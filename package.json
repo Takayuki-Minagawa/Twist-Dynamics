@@ -1,6 +1,6 @@
 {
   "name": "twist-dynamics",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "analyze": "node ./node_modules/tsx/dist/cli.mjs scripts/analyze.ts",
     "compare": "node ./node_modules/tsx/dist/cli.mjs scripts/compare.ts",
+    "check:accuracy": "node ./node_modules/tsx/dist/cli.mjs scripts/accuracy-check.ts",
     "check:encoding": "node ./node_modules/tsx/dist/cli.mjs scripts/check-encoding.ts"
   },
   "dependencies": {
