@@ -105,3 +105,33 @@ export function summarizeRespCsv(text: string): Record<string, unknown> {
     maxAbsFirstResponseColumn: data.columnMaxAbs[1] ?? null
   };
 }
+
+function formatNumber(value: number): string {
+  if (!Number.isFinite(value)) return "0";
+  const abs = Math.abs(value);
+  if (abs > 0 && (abs < 1e-6 || abs >= 1e4)) {
+    return value.toExponential(9);
+  }
+  return value.toFixed(9).replace(/\.?0+$/, "");
+}
+
+export function serializeRespCsv(data: RespFile): string {
+  const lines: string[] = [];
+  lines.push("#BaseShapeInfo");
+  lines.push(`Story,${data.baseShape.story ?? data.meta.massCount}`);
+  lines.push(`Zlebe,${data.baseShape.zLevel.map(formatNumber).join(",")}`);
+  lines.push("#MassCenter");
+  for (const center of data.baseShape.massCenters) {
+    lines.push(`MC   ,${center.layer},${formatNumber(center.x)},${formatNumber(center.y)}`);
+  }
+  lines.push("");
+  lines.push("#Resp_Result");
+  lines.push(
+    `質点数, ${data.meta.massCount}, 出力時間刻み(s), ${formatNumber(data.meta.dt)}, ダンパー数, ${data.meta.damperCount},出力単位, cm-rad,基礎変位含まない`
+  );
+  lines.push(data.header.join(","));
+  for (const row of data.records) {
+    lines.push(row.map(formatNumber).join(","));
+  }
+  return `${lines.join("\n")}\n`;
+}

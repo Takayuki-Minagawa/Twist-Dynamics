@@ -14,11 +14,12 @@
 - `RespResult(.csv)` パーサ
 - 実固有値解析（3自由度/層）コア
 - 複素固有値解析（状態方程式）コア
+- 時刻歴応答解析（Newmark-β）コア
 - 基準比較 CLI（`scripts/compare.ts`）
   - 比較ロジックは `src/core/compare.ts` へ分離
   - `--format json` による構造化出力をサポート
 - 解析実行 CLI（`scripts/analyze.ts`）
-  - `BuildingModel` (JSON/XML) から `Modal/ComplexModal` の DAT を出力
+  - `BuildingModel` (JSON/XML) から `Modal/ComplexModal/RespResult` を出力
   - モードベクトルは従来と同様に読みやすい正規化（モード毎最大振幅=1）
 - 簡易ブラウザ UI（ローカルファイル読込と互換確認）
 - 入力モデル作成フォーム（主要項目入力 + JSON 生成/保存）
@@ -88,6 +89,9 @@ npm run analyze -- --type modal --input reference/building-model/Test_simple.jso
 
 # 複素固有値解析 (ComplexModal DAT) + 実固有値も同時出力
 npm run analyze -- --type complex --input reference/building-model/Test_simple.json --output Work/complex_result.dat --modal-output Work/modal_result.dat
+
+# 時刻歴応答解析 (RespResult CSV)
+npm run analyze -- --type resp --input reference/building-model/Test_simple.json --wave Work/wave.csv --output Work/resp_result.csv
 ```
 
 ## ビルド
