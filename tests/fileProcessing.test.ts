@@ -9,7 +9,6 @@ import type { DecodedTextResult } from "../src/io";
 
 const messages: FileProcessingMessages = {
   unknownFormat: "unknown",
-  xmlUnsupported: "xml-disabled",
   formatErrorPrefix: "format",
   decodeErrorPrefix: "decode",
   decodeUnsupportedAction: "resave"
@@ -63,9 +62,32 @@ describe("File processing", () => {
     }
   });
 
-  it("reports XML input as unsupported", () => {
+  it("parses XML input and summarizes it", () => {
     const decoded: DecodedTextResult = {
-      text: "<ATV></ATV>",
+      text: [
+        "<BuildingModel format=\"twist-dynamics/building-model\" version=\"1\">",
+        "  <model>",
+        "    <structInfo>",
+        "      <massN>1</massN>",
+        "      <sType>R</sType>",
+        "      <zLevel><value>0</value><value>300</value></zLevel>",
+        "      <weight><value>100</value></weight>",
+        "      <wMoment><value>10</value></wMoment>",
+        "      <wCenter><point><x>0</x><y>0</y></point></wCenter>",
+        "    </structInfo>",
+        "    <floors>",
+        "      <floor><layer>1</layer><pos><point><x>0</x><y>0</y></point><point><x>1</x><y>0</y></point><point><x>1</x><y>1</y></point></pos></floor>",
+        "      <floor><layer>2</layer><pos><point><x>0</x><y>0</y></point><point><x>1</x><y>0</y></point><point><x>1</x><y>1</y></point></pos></floor>",
+        "    </floors>",
+        "    <columns />",
+        "    <wallCharaDB />",
+        "    <walls />",
+        "    <massDampers />",
+        "    <braceDampers />",
+        "    <dxPanels />",
+        "  </model>",
+        "</BuildingModel>"
+      ].join("\n"),
       encoding: "utf-8",
       hasBom: false,
       warnings: []
@@ -76,7 +98,8 @@ describe("File processing", () => {
     expect(result.kind).toBe("success");
     expect(result.report.type).toBe("xml");
     if (result.report.type === "xml") {
-      expect(result.report.message).toBe("xml-disabled");
+      expect(result.report.story).toBe(1);
+      expect(result.report.floorCount).toBe(2);
     }
   });
 

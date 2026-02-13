@@ -1,0 +1,111 @@
+{
+  "format": "twist-dynamics/building-model",
+  "version": 1,
+  "model": {
+    "structInfo": {
+      "massN": 2,
+      "sType": "DX",
+      "zLevel": [0, 320, 640],
+      "weight": [130, 115],
+      "wMoment": [26000, 24000],
+      "wCenter": [
+        { "x": 600, "y": 300 },
+        { "x": 600, "y": 300 }
+      ]
+    },
+    "floors": [
+      {
+        "layer": 1,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 600 },
+          { "x": 1200, "y": 600 },
+          { "x": 1200, "y": 0 }
+        ]
+      },
+      {
+        "layer": 2,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 600 },
+          { "x": 1200, "y": 600 },
+          { "x": 1200, "y": 0 }
+        ]
+      },
+      {
+        "layer": 3,
+        "pos": [
+          { "x": 0, "y": 0 },
+          { "x": 0, "y": 600 },
+          { "x": 1200, "y": 600 },
+          { "x": 1200, "y": 0 }
+        ]
+      }
+    ],
+    "columns": [
+      { "layer": 1, "pos": { "x": 0, "y": 0 }, "kx": 24, "ky": 24 },
+      { "layer": 1, "pos": { "x": 1200, "y": 0 }, "kx": 24, "ky": 24 },
+      { "layer": 2, "pos": { "x": 0, "y": 600 }, "kx": 22, "ky": 22 },
+      { "layer": 2, "pos": { "x": 1200, "y": 600 }, "kx": 22, "ky": 22 }
+    ],
+    "wallCharaDB": [
+      {
+        "name": "DX_W",
+        "k": 15,
+        "h": 0.03,
+        "c": 0,
+        "isEigenEffectK": true,
+        "isKCUnitChara": false,
+        "memo": "dx wall"
+      }
+    ],
+    "walls": [
+      {
+        "name": "DX_W",
+        "layer": 1,
+        "pos": [{ "x": 0, "y": 0 }, { "x": 0, "y": 600 }],
+        "isVisible": true
+      },
+      {
+        "name": "DX_W",
+        "layer": 2,
+        "pos": [{ "x": 1200, "y": 0 }, { "x": 1200, "y": 600 }],
+        "isVisible": true
+      }
+    ],
+    "massDampers": [
+      {
+        "name": "TMD-1",
+        "layer": 2,
+        "pos": { "x": 600, "y": 300 },
+        "weight": 2.5,
+        "freq": { "x": 1.8, "y": 1.8 },
+        "h": { "x": 0.05, "y": 0.05 }
+      }
+    ],
+    "braceDampers": [
+      {
+        "layer": 1,
+        "pos": { "x": 150, "y": 150 },
+        "direct": "X",
+        "k": 0,
+        "c": 1.5,
+        "width": 90,
+        "height": 150,
+        "isLightPos": true,
+        "isEigenEffectK": false
+      }
+    ],
+    "dxPanels": [
+      {
+        "layer": 1,
+        "direct": "X",
+        "pos": [
+          { "x": 200, "y": 100 },
+          { "x": 500, "y": 100 }
+        ],
+        "k": 6.5
+      }
+    ]
+  }
+}

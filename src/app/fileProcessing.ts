@@ -3,6 +3,7 @@ import {
   decodeTextWithMeta,
   FormatParseError,
   parseBuildingModelJson,
+  parseBuildingModelXml,
   parseComplexModalDat,
   parseModalDat,
   parseRespCsv,
@@ -17,7 +18,6 @@ export type FileType = "xml" | "modal" | "complex" | "resp" | "json" | "unknown"
 
 export interface FileProcessingMessages {
   unknownFormat: string;
-  xmlUnsupported: string;
   formatErrorPrefix: string;
   decodeErrorPrefix: string;
   decodeUnsupportedAction: string;
@@ -30,9 +30,17 @@ interface ReportBase {
   warnings?: string[];
 }
 
-export interface XmlUnsupportedReport extends ReportBase {
+export interface XmlReport extends ReportBase {
   type: "xml";
-  message: string;
+  story: number | null;
+  structType: StructType | null;
+  floorCount: number;
+  columnCount: number;
+  wallCount: number;
+  wallCharaCount: number;
+  massDamperCount: number;
+  braceDamperCount: number;
+  dxPanelCount: number;
 }
 
 export interface ModalReport extends ReportBase {
@@ -75,7 +83,7 @@ export interface UnknownReport extends ReportBase {
 }
 
 export type FileProcessingSuccessReport =
-  | XmlUnsupportedReport
+  | XmlReport
   | ModalReport
   | ComplexReport
   | RespReport
@@ -179,12 +187,13 @@ export function parseDecodedFile(
 
   switch (type) {
     case "xml": {
+      const model = parseBuildingModelXml(text);
       return {
         kind: "success",
         report: {
           ...reportBase,
           type,
-          message: messages.xmlUnsupported
+          ...summarizeBuildingModel(model)
         }
       };
     }

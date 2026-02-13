@@ -30,6 +30,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check repository text encodings
+        run: npm run check:encoding
+
+      - name: Golden compare (modal)
+        run: npm run compare -- --type modal --reference reference/modal/test_01_eig.dat --target reference/modal/test_01_eig.dat --max-issues 200
+
+      - name: Golden compare (complex)
+        run: npm run compare -- --type complex --reference reference/complex/Test_simple_ceig.dat --target reference/complex/Test_simple_ceig.dat --max-issues 200
+
+      - name: Golden compare (resp)
+        run: npm run compare -- --type resp --reference reference/resp/test.csv --target reference/resp/test.csv --max-issues 200
+
       - name: Run tests
         run: npm run test
 

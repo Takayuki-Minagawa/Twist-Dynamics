@@ -11,7 +11,8 @@ function loadAppVersion(): string {
   const raw = readFileSync(resolve(process.cwd(), "package.json"), "utf-8");
   const pkg = JSON.parse(raw) as PackageJson;
   const version = typeof pkg.version === "string" ? pkg.version : "0.0.0";
-  return `Ver${version}`;
+  const compact = version.replace(/\./g, "");
+  return `Ver.${compact}`;
 }
 
 const APP_VERSION = loadAppVersion();

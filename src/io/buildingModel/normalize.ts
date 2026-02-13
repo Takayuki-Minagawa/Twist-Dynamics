@@ -67,6 +67,40 @@ function validateGeometryRules(model: BuildingModel): void {
       );
     }
   }
+
+  for (const [index, wall] of model.walls.entries()) {
+    const [start, end] = wall.pos;
+    if (start.x !== end.x && start.y !== end.y) {
+      throw new FormatParseError(
+        `BuildingModel JSON: walls[${index}] must be aligned to X or Y axis (diagonal is not allowed).`
+      );
+    }
+    if (start.x === end.x && start.y === end.y) {
+      throw new FormatParseError(
+        `BuildingModel JSON: walls[${index}] must have non-zero length.`
+      );
+    }
+  }
+}
+
+function validateWallReferences(model: BuildingModel): void {
+  const names = new Set<string>();
+  for (const [index, wallChara] of model.wallCharaDB.entries()) {
+    if (names.has(wallChara.name)) {
+      throw new FormatParseError(
+        `BuildingModel JSON: wallCharaDB[${index}].name is duplicated: "${wallChara.name}".`
+      );
+    }
+    names.add(wallChara.name);
+  }
+
+  for (const [index, wall] of model.walls.entries()) {
+    if (!names.has(wall.name)) {
+      throw new FormatParseError(
+        `BuildingModel JSON: walls[${index}].name "${wall.name}" is not found in wallCharaDB.`
+      );
+    }
+  }
 }
 
 function validateLayerRules(model: BuildingModel): void {
@@ -109,6 +143,7 @@ export function normalizeBuildingModel(model: BuildingModel): BuildingModel {
   validateStructInfo(normalized);
   validateLayerRules(normalized);
   validateGeometryRules(normalized);
+  validateWallReferences(normalized);
 
   return normalized;
 }
