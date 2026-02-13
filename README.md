@@ -12,9 +12,14 @@
 - `Modal(.dat)` パーサ
 - `ComplexModal(.dat)` パーサ
 - `RespResult(.csv)` パーサ
+- 実固有値解析（3自由度/層）コア
+- 複素固有値解析（状態方程式）コア
 - 基準比較 CLI（`scripts/compare.ts`）
   - 比較ロジックは `src/core/compare.ts` へ分離
   - `--format json` による構造化出力をサポート
+- 解析実行 CLI（`scripts/analyze.ts`）
+  - `BuildingModel` (JSON/XML) から `Modal/ComplexModal` の DAT を出力
+  - モードベクトルは従来と同様に読みやすい正規化（モード毎最大振幅=1）
 - 簡易ブラウザ UI（ローカルファイル読込と互換確認）
 - 入力モデル作成フォーム（主要項目入力 + JSON 生成/保存）
 - 多言語 UI（日本語 / English）
@@ -74,6 +79,15 @@ npm run compare -- --type modal --reference reference/modal/test_01_eig.dat --ta
 npm run compare -- --type complex --reference reference/complex/Test_simple_ceig.dat --target reference/complex/Test_simple_ceig.dat
 npm run compare -- --type resp --reference reference/resp/test.csv --target reference/resp/test.csv
 npm run compare -- --type complex --reference reference/complex/Test_simple_ceig.dat --target reference/complex/Test_simple_ceig.dat --format json
+```
+
+## 解析スクリプト
+```bash
+# 実固有値解析 (ModalResult DAT)
+npm run analyze -- --type modal --input reference/building-model/Test_simple.json --output Work/modal_result.dat
+
+# 複素固有値解析 (ComplexModal DAT) + 実固有値も同時出力
+npm run analyze -- --type complex --input reference/building-model/Test_simple.json --output Work/complex_result.dat --modal-output Work/modal_result.dat
 ```
 
 ## ビルド

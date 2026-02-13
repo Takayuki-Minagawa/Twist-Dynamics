@@ -9,11 +9,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "analyze": "node ./node_modules/tsx/dist/cli.mjs scripts/analyze.ts",
     "compare": "node ./node_modules/tsx/dist/cli.mjs scripts/compare.ts",
     "check:encoding": "node ./node_modules/tsx/dist/cli.mjs scripts/check-encoding.ts"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.5.0"
+    "fast-xml-parser": "^4.5.0",
+    "mathjs": "^15.1.1",
+    "ml-matrix": "^6.12.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

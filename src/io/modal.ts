@@ -96,3 +96,57 @@ export function summarizeModalDat(text: string): Record<string, unknown> {
     eigenVectorRows: modal.modal.eigenVectors.length
   };
 }
+
+function formatNumber(value: number): string {
+  if (!Number.isFinite(value)) return "0";
+  const abs = Math.abs(value);
+  if (abs > 0 && (abs < 1e-3 || abs >= 1e4)) {
+    return value.toExponential(6);
+  }
+  return value.toFixed(6).replace(/\.?0+$/, "");
+}
+
+function formatModeHeader(modeCount: number): string {
+  const labels = [""];
+  for (let i = 0; i < modeCount; i++) {
+    labels.push(`${i + 1}次`);
+  }
+  return labels.join(",");
+}
+
+export function serializeModalDat(data: ModalDatFile): string {
+  const frequencies = data.modal.frequenciesHz;
+  const modeCount = frequencies.length;
+
+  const lines: string[] = [];
+  lines.push("#BaseShapeInfo");
+  lines.push(`Story,${data.baseShape.story ?? data.baseShape.massCenters.length}`);
+  lines.push(`Zlebe,${data.baseShape.zLevel.map(formatNumber).join(",")}`);
+  lines.push("#MassCenter");
+  for (const center of data.baseShape.massCenters) {
+    lines.push(
+      `MC   ,${center.layer},${formatNumber(center.x)},${formatNumber(center.y)}`
+    );
+  }
+  lines.push("");
+  lines.push("#ModalResult");
+  lines.push("〇固有振動数");
+  lines.push(formatModeHeader(modeCount));
+  lines.push(`,${frequencies.map(formatNumber).join(",")}`);
+  lines.push(`刺激係数X,${data.modal.participationFactorX.map(formatNumber).join(",")}`);
+  lines.push(`刺激係数Y,${data.modal.participationFactorY.map(formatNumber).join(",")}`);
+  lines.push("有効質量比X");
+  lines.push(data.modal.effectiveMassRatioX.map(formatNumber).join(","));
+  lines.push("有効質量比Y");
+  lines.push(data.modal.effectiveMassRatioY.map(formatNumber).join(","));
+  lines.push("");
+  lines.push("〇固有ベクトル");
+  lines.push(formatModeHeader(modeCount));
+  for (const row of data.modal.eigenVectors) {
+    lines.push(`${row.label},${row.values.map(formatNumber).join(",")}`);
+  }
+  lines.push("");
+  lines.push("#End_ModalResult");
+
+  return `${lines.join("\n")}\n`;
+}
