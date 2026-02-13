@@ -1,4 +1,5 @@
 export type Language = "ja" | "en";
+import { APP_VERSION } from "./version";
 
 export interface UiText {
   heroTitle: string;
@@ -20,8 +21,6 @@ export interface UiText {
   decodeErrorPrefix: string;
   decodeUnsupportedAction: string;
 }
-
-const APP_VERSION = "Ver.Beta02";
 
 const TEXTS: Record<Language, UiText> = {
   ja: {
