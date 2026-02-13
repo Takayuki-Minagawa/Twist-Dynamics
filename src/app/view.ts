@@ -1,10 +1,6 @@
 export interface AppView {
   fileInput: HTMLInputElement;
   summary: HTMLElement;
-  jsonInput: HTMLTextAreaElement;
-  xmlOutput: HTMLElement;
-  convertButton: HTMLButtonElement;
-  downloadButton: HTMLButtonElement;
   languageLabel: HTMLLabelElement;
   languageSelect: HTMLSelectElement;
   themeButton: HTMLButtonElement;
@@ -12,7 +8,6 @@ export interface AppView {
   heroTitle: HTMLHeadingElement;
   heroDescription: HTMLParagraphElement;
   parseCardTitle: HTMLHeadingElement;
-  convertCardTitle: HTMLHeadingElement;
   fileInputLabel: HTMLLabelElement;
   noteText: HTMLDivElement;
   manualModal: HTMLDivElement;
@@ -58,15 +53,6 @@ export function createAppView(root: HTMLElement): AppView | null {
             <input id="fileInput" type="file" multiple />
           </div>
           <pre id="summary"></pre>
-        </article>
-        <article class="card">
-          <h2 id="convertCardTitle"></h2>
-          <textarea id="jsonInput"></textarea>
-          <div class="actions">
-            <button id="convertButton" type="button"></button>
-            <button id="downloadButton" type="button"></button>
-          </div>
-          <pre id="xmlOutput"></pre>
           <div id="noteText" class="note"></div>
         </article>
       </section>
@@ -87,10 +73,6 @@ export function createAppView(root: HTMLElement): AppView | null {
     return {
       fileInput: queryRequired<HTMLInputElement>(root, "#fileInput"),
       summary: queryRequired<HTMLElement>(root, "#summary"),
-      jsonInput: queryRequired<HTMLTextAreaElement>(root, "#jsonInput"),
-      xmlOutput: queryRequired<HTMLElement>(root, "#xmlOutput"),
-      convertButton: queryRequired<HTMLButtonElement>(root, "#convertButton"),
-      downloadButton: queryRequired<HTMLButtonElement>(root, "#downloadButton"),
       languageLabel: queryRequired<HTMLLabelElement>(root, "#languageLabel"),
       languageSelect: queryRequired<HTMLSelectElement>(root, "#languageSelect"),
       themeButton: queryRequired<HTMLButtonElement>(root, "#themeButton"),
@@ -98,7 +80,6 @@ export function createAppView(root: HTMLElement): AppView | null {
       heroTitle: queryRequired<HTMLHeadingElement>(root, "#heroTitle"),
       heroDescription: queryRequired<HTMLParagraphElement>(root, "#heroDescription"),
       parseCardTitle: queryRequired<HTMLHeadingElement>(root, "#parseCardTitle"),
-      convertCardTitle: queryRequired<HTMLHeadingElement>(root, "#convertCardTitle"),
       fileInputLabel: queryRequired<HTMLLabelElement>(root, "#fileInputLabel"),
       noteText: queryRequired<HTMLDivElement>(root, "#noteText"),
       manualModal: queryRequired<HTMLDivElement>(root, "#manualModal"),

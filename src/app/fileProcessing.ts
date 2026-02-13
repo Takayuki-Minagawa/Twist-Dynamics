@@ -1,5 +1,4 @@
 import {
-  convertNiceJsonToBuildingModelXml,
   decodeTextWithMeta,
   parseBuildingModelXml,
   parseComplexModalDat,
@@ -14,13 +13,13 @@ export type FileType = "xml" | "modal" | "complex" | "resp" | "json" | "unknown"
 
 export interface FileProcessingMessages {
   unknownFormat: string;
+  jsonUnsupported: string;
   decodeErrorPrefix: string;
   decodeUnsupportedAction: string;
 }
 
 export interface FileProcessingResult {
   report: Record<string, unknown>;
-  generatedXml?: string;
 }
 
 export function detectFileType(fileName: string, text: string): FileType {
@@ -100,14 +99,12 @@ export function parseDecodedFile(
       };
     }
     case "json": {
-      const xml = convertNiceJsonToBuildingModelXml(text);
       return {
         report: {
           ...reportBase,
           type,
-          convertedXmlLength: xml.length
-        },
-        generatedXml: xml
+          message: messages.jsonUnsupported
+        }
       };
     }
     default:

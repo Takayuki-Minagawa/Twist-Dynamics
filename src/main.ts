@@ -1,5 +1,4 @@
 import "./style.css";
-import { convertNiceJsonToBuildingModelXml } from "./io";
 import { getUiText, normalizeLanguage, type Language, type UiText } from "./app/i18n";
 import { processInputFile, type FileProcessingMessages } from "./app/fileProcessing";
 import { createAppView } from "./app/view";
@@ -8,16 +7,6 @@ type Theme = "light" | "dark";
 
 const LANGUAGE_KEY = "twist-dynamics-language";
 const THEME_KEY = "twist-dynamics-theme";
-
-function downloadText(name: string, text: string): void {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 function loadLanguage(): Language {
   return normalizeLanguage(window.localStorage.getItem(LANGUAGE_KEY));
@@ -36,7 +25,6 @@ function bootstrap(): void {
 
   let currentLanguage = loadLanguage();
   let currentTheme = loadTheme();
-  let latestXml = "";
 
   const applyTheme = (): void => {
     document.documentElement.dataset.theme = currentTheme;
@@ -53,6 +41,7 @@ function bootstrap(): void {
   const getFileMessages = (text: UiText): FileProcessingMessages => {
     return {
       unknownFormat: text.unknownFormat,
+      jsonUnsupported: text.jsonUnsupported,
       decodeErrorPrefix: text.decodeErrorPrefix,
       decodeUnsupportedAction: text.decodeUnsupportedAction
     };
@@ -65,11 +54,7 @@ function bootstrap(): void {
     view.heroTitle.textContent = t.heroTitle;
     view.heroDescription.textContent = t.heroDescription;
     view.parseCardTitle.textContent = t.parseCardTitle;
-    view.convertCardTitle.textContent = t.convertCardTitle;
     view.fileInputLabel.textContent = t.fileInputLabel;
-    view.convertButton.textContent = t.convertButton;
-    view.downloadButton.textContent = t.downloadButton;
-    view.jsonInput.placeholder = t.jsonPlaceholder;
     view.noteText.textContent = t.note;
     view.languageLabel.textContent = t.languageLabel;
     view.manualButton.textContent = t.openManual;
@@ -112,28 +97,9 @@ function bootstrap(): void {
     for (const file of files) {
       const result = await processInputFile(file, getFileMessages(t));
       reports.push(result.report);
-      if (result.generatedXml) {
-        latestXml = result.generatedXml;
-        view.xmlOutput.textContent = latestXml;
-      }
     }
 
     view.summary.textContent = JSON.stringify(reports, null, 2);
-  });
-
-  view.convertButton.addEventListener("click", () => {
-    const t = getUiText(currentLanguage);
-    try {
-      latestXml = convertNiceJsonToBuildingModelXml(view.jsonInput.value);
-      view.xmlOutput.textContent = latestXml;
-    } catch (error) {
-      view.xmlOutput.textContent = `${t.convertErrorPrefix} ${error instanceof Error ? error.message : String(error)}`;
-    }
-  });
-
-  view.downloadButton.addEventListener("click", () => {
-    if (!latestXml) return;
-    downloadText("converted_building_model.xml", latestXml);
   });
 
   view.languageSelect.addEventListener("change", () => {

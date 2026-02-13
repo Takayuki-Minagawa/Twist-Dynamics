@@ -11,11 +11,10 @@
 - `Modal(.dat)` パーサ
 - `ComplexModal(.dat)` パーサ
 - `RespResult(.csv)` パーサ
-- `JSON -> BuildingModel(XML)` 変換
 - 基準比較 CLI（`scripts/compare.ts`）
   - 比較ロジックは `src/core/compare.ts` へ分離
   - `--format json` による構造化出力をサポート
-- 簡易ブラウザ UI（ローカルファイル読込と変換確認）
+- 簡易ブラウザ UI（ローカルファイル読込と互換確認）
 - 多言語 UI（日本語 / English）
 - 簡易マニュアル表示（言語連動）
 - ライト / ダークモード切替
