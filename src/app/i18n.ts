@@ -37,8 +37,10 @@ const TEXTS: Record<Language, UiText> = {
     manualIntro: `この画面でできる基本操作です。現在バージョン: ${APP_VERSION}`,
     manualSteps: [
       "左カードで入力データ（JSON）や解析結果（DAT/CSV）を読み込み、判定結果（形式・文字コード・要約）を確認します。",
+      "BuildingModel の XML 入力は非対応です。XML ファイルを選択した場合は JSON 変換を促すメッセージを表示します。",
       "表示言語とライト/ダークモードは上部ボタンからいつでも切り替えできます。",
-      "文字コードは UTF-8 / Shift_JIS / UTF-16 を自動判定します。判定不能時は再保存を促すエラーを表示します。"
+      "文字コードは UTF-8 / Shift_JIS / UTF-16 を自動判定します。判定不能時は再保存を促すエラーを表示します。",
+      "入力内容に不整合がある場合は「形式エラー」として項目単位のエラーメッセージを表示します。"
     ],
     switchToDark: "ダークモード",
     switchToLight: "ライトモード",
@@ -63,8 +65,10 @@ const TEXTS: Record<Language, UiText> = {
     manualIntro: `Basic operations available on this screen. Current version: ${APP_VERSION}`,
     manualSteps: [
       "Load input models (JSON) and analysis result files (DAT/CSV) in the left card and inspect parse summaries (format/encoding/metrics).",
+      "BuildingModel XML input is not supported. Selecting XML shows a message to convert it into JSON.",
       "Switch language and light/dark mode at any time from the top controls.",
-      "Character encoding is auto-detected for UTF-8, Shift_JIS, and UTF-16. If detection fails, an explicit re-save message is shown."
+      "Character encoding is auto-detected for UTF-8, Shift_JIS, and UTF-16. If detection fails, an explicit re-save message is shown.",
+      "When input content is inconsistent, the app reports it as a format error with field-level messages."
     ],
     switchToDark: "Dark mode",
     switchToLight: "Light mode",
