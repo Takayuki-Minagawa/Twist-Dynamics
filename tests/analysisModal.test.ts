@@ -95,4 +95,17 @@ describe("real eigen analysis", () => {
     expect(parsed.modal.eigenVectors.length).toBe(modal.modal.eigenVectors.length);
     expect(parsed.modal.frequenciesHz[0]).toBeCloseTo(modal.modal.frequenciesHz[0], 6);
   });
+
+  it("serializes/parse with empty effective mass ratio arrays", () => {
+    const { modal } = analyzeRealEigen(createSimpleModel());
+    modal.modal.effectiveMassRatioX = [];
+    modal.modal.effectiveMassRatioY = [];
+
+    const text = serializeModalDat(modal);
+    const parsed = parseModalDat(text);
+
+    expect(parsed.modal.effectiveMassRatioX).toEqual([]);
+    expect(parsed.modal.effectiveMassRatioY).toEqual([]);
+    expect(parsed.modal.frequenciesHz.length).toBe(modal.modal.frequenciesHz.length);
+  });
 });
