@@ -193,8 +193,11 @@ export function decimateSeriesForCanvas(
 
   const bucketSize = Math.ceil(count / bucketCount);
   const output: Array<{ time: number; value: number }> = [];
+  let lastPushedIndex = -1;
   const pushIndex = (index: number): void => {
+    if (index === lastPushedIndex) return;
     output.push({ time: time[index], value: values[index] });
+    lastPushedIndex = index;
   };
   // Always anchor the polyline at the true first sample so the drawn line
   // starts at t0 even when index 0 is not its bucket's extremum.
@@ -212,18 +215,11 @@ export function decimateSeriesForCanvas(
       : minIndex < maxIndex
         ? [minIndex, maxIndex]
         : [maxIndex, minIndex];
-    for (const index of indices) {
-      // Skip index 0 (already anchored) and any bucket extremum equal to the
-      // previously emitted sample to avoid duplicate coincident points.
-      if (index === 0) continue;
-      pushIndex(index);
-    }
+    for (const index of indices) pushIndex(index);
   }
   // Always anchor the final sample so a terminal peak/trough is never dropped.
   const lastIndex = count - 1;
-  if (output[output.length - 1]?.time !== time[lastIndex]) {
-    pushIndex(lastIndex);
-  }
+  pushIndex(lastIndex);
   return output;
 }
 

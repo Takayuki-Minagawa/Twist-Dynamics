@@ -30,6 +30,16 @@ describe("response chart decimation", () => {
     expect(points[0]).toEqual({ time: 0, value: values[0] });
     expect(points[points.length - 1]).toEqual({ time: 199, value: 5 });
   });
+
+  it("keeps the true final sample when consecutive timestamps are equal", () => {
+    const points = decimateSeriesForCanvas(
+      [0, 1, 2, 2],
+      [0, 10, -10, 5],
+      1
+    );
+
+    expect(points[points.length - 1]).toEqual({ time: 2, value: 5 });
+  });
 });
 
 describe("peak response profile selection", () => {
