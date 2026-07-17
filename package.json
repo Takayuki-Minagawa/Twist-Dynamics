@@ -1,29 +1,36 @@
 {
   "name": "twist-dynamics",
-  "version": "1.0.2",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "analyze": "node ./node_modules/tsx/dist/cli.mjs scripts/analyze.ts",
-    "compare": "node ./node_modules/tsx/dist/cli.mjs scripts/compare.ts",
-    "check:accuracy": "node ./node_modules/tsx/dist/cli.mjs scripts/accuracy-check.ts",
-    "check:encoding": "node ./node_modules/tsx/dist/cli.mjs scripts/check-encoding.ts"
+    "analyze": "jiti scripts/analyze.ts",
+    "compare": "jiti scripts/compare.ts",
+    "check:accuracy": "jiti scripts/accuracy-check.ts",
+    "check:encoding": "jiti scripts/check-encoding.ts",
+    "check:licenses": "jiti scripts/verify-third-party-licenses.ts"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.5.0",
-    "mathjs": "^15.1.1",
-    "ml-matrix": "^6.12.1"
+    "fast-xml-parser": "^5.10.1",
+    "mathjs": "^15.2.0",
+    "ml-matrix": "^6.12.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
-    "tsx": "^4.19.2",
+    "@types/node": "^20.19.0",
+    "@types/three": "^0.185.1",
+    "happy-dom": "^20.10.6",
+    "jiti": "^2.7.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.10",
-    "vitest": "^2.1.4"
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10"
   }
 }

@@ -7,7 +7,6 @@ function createSimpleModel(): BuildingModel {
   return {
     structInfo: {
       massN: 1,
-      sType: "R",
       zLevel: [0, 300],
       weight: [100],
       wMoment: [1000],
@@ -57,8 +56,7 @@ function createSimpleModel(): BuildingModel {
       }
     ],
     massDampers: [],
-    braceDampers: [],
-    dxPanels: []
+    braceDampers: []
   };
 }
 

@@ -60,14 +60,6 @@ function validateGeometryRules(model: BuildingModel): void {
     }
   }
 
-  for (const [index, panel] of model.dxPanels.entries()) {
-    if (panel.pos.length < 2) {
-      throw new FormatParseError(
-        `BuildingModel JSON: dxPanels[${index}].pos must contain at least 2 points.`
-      );
-    }
-  }
-
   for (const [index, wall] of model.walls.entries()) {
     const [start, end] = wall.pos;
     if (start.x !== end.x && start.y !== end.y) {
@@ -123,21 +115,25 @@ function validateLayerRules(model: BuildingModel): void {
   for (const [index, bd] of model.braceDampers.entries()) {
     checkLayerRange(`braceDampers[${index}]`, bd.layer, defaultMaxLayer);
   }
-  for (const [index, panel] of model.dxPanels.entries()) {
-    checkLayerRange(`dxPanels[${index}]`, panel.layer, defaultMaxLayer);
-  }
 }
 
 export function normalizeBuildingModel(model: BuildingModel): BuildingModel {
   const normalized: BuildingModel = {
-    structInfo: model.structInfo,
+    structInfo: model.structInfo
+      ? {
+          massN: model.structInfo.massN,
+          zLevel: model.structInfo.zLevel.slice(),
+          weight: model.structInfo.weight.slice(),
+          wMoment: model.structInfo.wMoment.slice(),
+          wCenter: model.structInfo.wCenter.map((center) => ({ ...center }))
+        }
+      : undefined,
     floors: model.floors.slice().sort((a, b) => a.layer - b.layer),
     columns: model.columns.slice().sort((a, b) => a.layer - b.layer),
     wallCharaDB: model.wallCharaDB.slice(),
     walls: model.walls.slice().sort((a, b) => a.layer - b.layer),
     massDampers: model.massDampers.slice().sort((a, b) => a.layer - b.layer),
-    braceDampers: model.braceDampers.slice().sort((a, b) => a.layer - b.layer),
-    dxPanels: model.dxPanels.slice().sort((a, b) => a.layer - b.layer)
+    braceDampers: model.braceDampers.slice().sort((a, b) => a.layer - b.layer)
   };
 
   validateStructInfo(normalized);

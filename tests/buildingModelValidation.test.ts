@@ -8,7 +8,6 @@ function createValidDocument() {
     model: {
       structInfo: {
         massN: 2,
-        sType: "R",
         zLevel: [0, 300, 600],
         weight: [100, 120],
         wMoment: [10, 12],
@@ -60,8 +59,7 @@ function createValidDocument() {
         }
       ],
       massDampers: [],
-      braceDampers: [],
-      dxPanels: []
+      braceDampers: []
     }
   };
 }

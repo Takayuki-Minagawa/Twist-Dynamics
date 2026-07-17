@@ -1,5 +1,3 @@
-export type StructType = "R" | "DX";
-
 export interface Point2D {
   x: number;
   y: number;
@@ -7,7 +5,6 @@ export interface Point2D {
 
 export interface StructInfo {
   massN: number;
-  sType: StructType;
   zLevel: number[];
   weight: number[];
   wMoment: number[];
@@ -64,13 +61,6 @@ export interface BraceDamper {
   isEigenEffectK: boolean;
 }
 
-export interface DXPanel {
-  layer: number;
-  direct: "X" | "Y";
-  pos: Point2D[];
-  k: number;
-}
-
 export interface BuildingModel {
   structInfo?: StructInfo;
   floors: Floor[];
@@ -79,7 +69,6 @@ export interface BuildingModel {
   walls: Wall[];
   massDampers: MassDamper[];
   braceDampers: BraceDamper[];
-  dxPanels: DXPanel[];
 }
 
 export interface MassCenter {

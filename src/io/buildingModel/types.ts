@@ -1,4 +1,4 @@
-import type { BuildingModel, StructType } from "../../core/types";
+import type { BuildingModel } from "../../core/types";
 
 export interface BuildingModelJsonDocument {
   format: string;
@@ -8,14 +8,28 @@ export interface BuildingModelJsonDocument {
 
 export interface BuildingModelSummary {
   story: number | null;
-  structType: StructType | null;
   floorCount: number;
   columnCount: number;
   wallCount: number;
   wallCharaCount: number;
   massDamperCount: number;
   braceDamperCount: number;
-  dxPanelCount: number;
+}
+
+export type BuildingModelWarningCode =
+  | "legacy-struct-type-ignored"
+  | "legacy-dx-panels-converted";
+
+export interface BuildingModelWarning {
+  code: BuildingModelWarningCode;
+  message: string;
+  path: "structInfo.sType" | "dxPanels";
+  count?: number;
+}
+
+export interface BuildingModelParseResult {
+  model: BuildingModel;
+  warnings: BuildingModelWarning[];
 }
 
 export interface BuildingModelParserModule {

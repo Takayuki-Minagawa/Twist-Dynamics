@@ -4,7 +4,6 @@
   "model": {
     "structInfo": {
       "massN": 1,
-      "sType": "R",
       "zLevel": [0, 300],
       "weight": [100],
       "wMoment": [13519633.33],
@@ -201,7 +200,6 @@
         "isLightPos": true,
         "isEigenEffectK": false
       }
-    ],
-    "dxPanels": []
+    ]
   }
 }

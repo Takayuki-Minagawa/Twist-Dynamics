@@ -31,7 +31,9 @@ function main(): void {
     ".wav",
     ".mp4"
   ]);
-  const files = execSync("git ls-files", { encoding: "utf8" })
+  // Include untracked, non-ignored files so a pre-commit/PR check also validates newly
+  // created sources before they have been added to the index.
+  const files = execSync("git ls-files --cached --others --exclude-standard", { encoding: "utf8" })
     .split(/\r?\n/)
     .filter((line) => line.length > 0);
 
@@ -54,7 +56,7 @@ function main(): void {
   }
 
   if (issues.length === 0) {
-    console.log(`OK: ${files.length} tracked file(s) are UTF-8 without BOM.`);
+    console.log(`OK: ${files.length} repository file(s) are UTF-8 without BOM.`);
     process.exit(0);
   }
 
