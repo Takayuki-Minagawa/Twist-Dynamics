@@ -2,7 +2,6 @@
   <model>
     <structInfo>
       <massN>1</massN>
-      <sType>R</sType>
       <zLevel>
         <value>0</value>
         <value>300</value>
@@ -127,7 +126,5 @@
         <isEigenEffectK>false</isEigenEffectK>
       </braceDamper>
     </braceDampers>
-
-    <dxPanels />
   </model>
 </BuildingModel>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseBuildingModelJson,
+  parseBuildingModelJsonWithMeta,
   parseBuildingModelXml,
   parseComplexModalDat,
   parseModalDat,
@@ -22,7 +23,6 @@ const parserCases: ParserFixtureCase[] = [
     verify: (text) => {
       const model = parseBuildingModelJson(text);
       expect(model.structInfo?.massN).toBe(1);
-      expect(model.structInfo?.sType).toBe("R");
       expect(model.floors.length).toBeGreaterThanOrEqual(2);
       expect(model.columns.length).toBeGreaterThanOrEqual(4);
       expect(model.walls.length).toBeGreaterThanOrEqual(1);
@@ -35,28 +35,58 @@ const parserCases: ParserFixtureCase[] = [
     verify: (text) => {
       const model = parseBuildingModelXml(text);
       expect(model.structInfo?.massN).toBe(1);
-      expect(model.structInfo?.sType).toBe("R");
       expect(model.columns.length).toBeGreaterThanOrEqual(4);
       expect(model.massDampers.length).toBeGreaterThanOrEqual(1);
     }
   },
   {
-    name: "parses BuildingModel R no-tmd fixture",
-    fixturePath: "reference/building-model/R_no_tmd.json",
+    name: "parses BuildingModel no-tmd fixture",
+    fixturePath: "reference/building-model/no_tmd.json",
     verify: (text) => {
       const model = parseBuildingModelJson(text);
-      expect(model.structInfo?.sType).toBe("R");
       expect(model.massDampers.length).toBe(0);
     }
   },
   {
-    name: "parses BuildingModel DX with tmd fixture",
-    fixturePath: "reference/building-model/DX_with_tmd.json",
+    name: "parses BuildingModel with-tmd fixture",
+    fixturePath: "reference/building-model/with_tmd.json",
     verify: (text) => {
       const model = parseBuildingModelJson(text);
-      expect(model.structInfo?.sType).toBe("DX");
       expect(model.massDampers.length).toBeGreaterThanOrEqual(1);
-      expect(model.dxPanels.length).toBeGreaterThanOrEqual(1);
+      expect(model.columns).toContainEqual({
+        layer: 1,
+        pos: { x: 350, y: 100 },
+        kx: 6.5,
+        ky: 0
+      });
+    }
+  },
+  {
+    name: "migrates legacy BuildingModel DX fixture",
+    fixturePath: "reference/building-model/DX_with_tmd.json",
+    verify: (text) => {
+      const result = parseBuildingModelJsonWithMeta(text);
+      expect(result.warnings.map((warning) => warning.code)).toEqual([
+        "legacy-struct-type-ignored",
+        "legacy-dx-panels-converted"
+      ]);
+      expect(result.model.columns).toContainEqual({
+        layer: 1,
+        pos: { x: 350, y: 100 },
+        kx: 6.5,
+        ky: 0
+      });
+    }
+  },
+  {
+    name: "ignores sType in the legacy no-tmd fixture",
+    fixturePath: "reference/building-model/R_no_tmd.json",
+    verify: (text) => {
+      const result = parseBuildingModelJsonWithMeta(text);
+      expect(result.warnings.map((warning) => warning.code)).toEqual([
+        "legacy-struct-type-ignored"
+      ]);
+      expect(result.model.massDampers.length).toBe(0);
     }
   },
   {
@@ -118,10 +148,11 @@ describe("I/O fixture parser table", () => {
     const second = parseBuildingModelJson(serialized);
 
     expect(second.structInfo?.massN).toBe(first.structInfo?.massN);
-    expect(second.structInfo?.sType).toBe(first.structInfo?.sType);
     expect(second.structInfo?.zLevel).toEqual(first.structInfo?.zLevel);
     expect(second.columns.length).toBe(first.columns.length);
     expect(second.walls.length).toBe(first.walls.length);
     expect(second.wallCharaDB.length).toBe(first.wallCharaDB.length);
+    expect(serialized).not.toContain('"sType"');
+    expect(serialized).not.toContain('"dxPanels"');
   });
 });

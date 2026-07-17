@@ -1,10 +1,11 @@
-export type Language = "ja" | "en";
 import { APP_VERSION } from "./version";
+import type { PeakProfileMetric, PeakProfileSeriesKey } from "./responseCharts";
+
+export type Language = "ja" | "en";
 
 export interface UiText {
   heroTitle: string;
   heroDescription: string;
-  parseCardTitle: string;
   parseResultTitle: string;
   fileInputLabel: string;
   note: string;
@@ -20,125 +21,300 @@ export interface UiText {
   formatErrorPrefix: string;
   decodeErrorPrefix: string;
   decodeUnsupportedAction: string;
+  legacyStructTypeIgnored: string;
+  legacyDxPanelsConverted: (count: number) => string;
   editorCardTitle: string;
   editorMassNLabel: string;
-  editorStructTypeLabel: string;
-  editorZLevelLabel: string;
-  editorWeightLabel: string;
-  editorWMomentLabel: string;
-  editorWCenterLabel: string;
-  editorFloorsLabel: string;
-  editorColumnsLabel: string;
-  editorWallCharasLabel: string;
-  editorWallsLabel: string;
-  editorMassDampersLabel: string;
-  editorBraceDampersLabel: string;
-  editorDxPanelsLabel: string;
-  editorPreviewTitle: string;
+  editorBaseZLabel: string;
   editorBuildButton: string;
   editorDownloadButton: string;
   editorImportLabel: string;
   editorHint: string;
+  editorPreviewTitle: string;
+  editorValid: string;
+  editorInvalid: string;
+  storyCsvButton: string;
+  planTitle: string;
+  planLayerLabel: string;
+  planCanvasLabel: string;
+  planStoryLabel: string;
+  massCenterLabel: string;
+  stiffnessCenterLabel: string;
+  storySummaryTitle: string;
+  storySummaryHeaders: readonly string[];
+  viewerTitle: string;
+  viewerModeLabel: string;
+  viewerModeIndexLabel: string;
+  viewerSeekLabel: string;
+  viewerCanvasLabel: string;
+  viewerUnavailable: string;
+  viewerModeOptions: Record<"static" | "real" | "complex" | "response", string>;
+  viewerCategoryLabels: Record<string, string>;
+  storyPrefix: string;
+  modePrefix: string;
+  viewerPlay: string;
+  viewerPause: string;
+  viewerScaleLabel: string;
+  viewerRotationLabel: string;
+  viewerSpeedLabel: string;
+  viewerReset: string;
+  resultInputLabel: string;
+  responseTitle: string;
+  responseWaveCanvasLabel: string;
+  responseProfileCanvasLabel: string;
+  responseProfileMetricLabel: string;
+  responseProfileMetricOptions: Record<PeakProfileMetric, string>;
+  responseProfileSeriesLabels: Record<PeakProfileSeriesKey, string>;
+  responseHeaders: readonly string[];
+  chartNoSeries: string;
+  chartNoPeak: string;
+  chartStory: string;
 }
 
 const TEXTS: Record<Language, UiText> = {
   ja: {
-    heroTitle: `Twist-Dynamics ${APP_VERSION} (Phase 0/1)`,
-    heroDescription: "BuildingModel(JSON/XML) と既存結果フォーマット（DAT/CSV）の読込検証をブラウザ上で実行します。",
-    parseCardTitle: "ファイル読込（JSON / XML / DAT / CSV）",
-    parseResultTitle: "読込結果サマリ",
-    fileInputLabel: "対象ファイル:",
-    note: "単位系ルール（kN, cm など）は既存 C# と整合させて扱います。",
+    heroTitle: `Twist-Dynamics ${APP_VERSION}`,
+    heroDescription:
+      "方向・座標・剛性で建物を入力し、偏心・固有モード・時刻歴応答を2D/3Dで確認します。",
+    parseResultTitle: "ファイル読込と互換性レポート",
+    fileInputLabel: "JSON / XML / DAT / CSV:",
+    note: "単位系は kN・cm・s。旧 sType は無視され、旧 DXPanel は等価な剛性要素へ自動変換されます。",
     languageLabel: "表示言語",
     openManual: "簡易マニュアル",
     closeManual: "閉じる",
     manualTitle: `簡易マニュアル (${APP_VERSION})`,
-    manualIntro: `この画面でできる基本操作です。現在バージョン: ${APP_VERSION}`,
+    manualIntro: "モデル入力から結果確認までの基本操作です。",
     manualSteps: [
-      "左カードで入力データ（JSON/XML）や解析結果（DAT/CSV）を読み込み、判定結果（形式・文字コード・要約）を確認します。",
-      "右カードで主要な建物データ（階数、Zレベル、重量/重心、柱、壁特性、壁など）を編集し、JSON を生成できます。",
-      "表示言語とライト/ダークモードは上部ボタンからいつでも切り替えできます。",
-      "文字コードは UTF-8 / Shift_JIS / UTF-16 を自動判定します。判定不能時は再保存を促すエラーを表示します。",
-      "入力内容に不整合がある場合は「形式エラー」として項目単位のエラーメッセージを表示します。"
+      "建物概要と各表を編集します。赤いセルは行単位の入力エラーです。各表の一括貼付け欄には Excel 由来の CSV/TSV を貼り付けできます。",
+      "モデル更新で JSON、平面プレビュー、剛心・偏心率、3Dモデル、実固有モードを同時に更新します。",
+      "旧 JSON/XML の sType は無視し、dxPanels は同じ層剛性を持つ columns へ自動変換します。変換内容は読込レポートに表示されます。",
+      "3D画面では要素・階の表示、モード倍率、ねじれ強調、再生速度を調整できます。マウスで回転・パン・ズームできます。",
+      "DAT/CSV結果を読み込むと、固有モードまたは時刻歴アニメーションを確認できます。最大応答グラフは変位・層間変形角・ねじれ角・加速度を切り替えられます。"
     ],
     switchToDark: "ダークモード",
     switchToLight: "ライトモード",
-    unknownFormat: "既存フォーマットの判定に失敗しました。",
+    unknownFormat: "対応形式を判定できませんでした。",
     formatErrorPrefix: "形式エラー:",
     decodeErrorPrefix: "文字コードエラー:",
     decodeUnsupportedAction:
       "UTF-8(BOMなし) か Shift_JIS で再保存してから再アップロードしてください。",
-    editorCardTitle: "入力モデル作成（BuildingModel）",
-    editorMassNLabel: "階数 (massN)",
-    editorStructTypeLabel: "構造種別 (R / DX)",
-    editorZLevelLabel: "Zレベル (CSV, massN+1個)",
-    editorWeightLabel: "重量 (CSV, massN個)",
-    editorWMomentLabel: "重量慣性モーメント (CSV, massN個)",
-    editorWCenterLabel: "重心座標 (1行1点: x,y)",
-    editorFloorsLabel: "床ポリゴン (1行: layer,x1,y1,x2,y2,...)",
-    editorColumnsLabel: "柱 (1行: layer,x,y,kx,ky)",
-    editorWallCharasLabel:
-      "壁特性 (1行: name,k,h,c,isEigenEffectK,isKCUnitChara[,memo])",
-    editorWallsLabel: "壁 (1行: layer,name,x1,y1,x2,y2,isVisible)",
-    editorMassDampersLabel: "マスダンパー (1行: name,layer,x,y,weight,freqX,freqY,hX,hY)",
-    editorBraceDampersLabel:
-      "ブレースダンパー (1行: layer,x,y,direct,k,c,width,height,isLightPos,isEigenEffectK)",
-    editorDxPanelsLabel: "DXパネル (1行: layer,direct,k,x1,y1,x2,y2,...)",
-    editorPreviewTitle: "生成JSONプレビュー",
-    editorBuildButton: "JSON生成",
+    legacyStructTypeIgnored: "旧フィールド structInfo.sType を無視しました。",
+    legacyDxPanelsConverted: (count) =>
+      `旧 dxPanels ${count}件を等価な剛性要素 columns へ変換しました。`,
+    editorCardTitle: "建物概要・モデル操作",
+    editorMassNLabel: "階数",
+    editorBaseZLabel: "基準レベル z (cm)",
+    editorBuildButton: "モデル更新",
     editorDownloadButton: "JSON保存",
     editorImportLabel: "JSON/XML読込:",
-    editorHint: "形式エラーが出る場合は行フォーマットと列数を確認してください。"
+    editorHint: "壁の解析寄与は壁特性の「固有値剛性に含む」で指定し、表示可否とは分けて扱います。",
+    editorPreviewTitle: "正規化JSONを表示",
+    editorValid: "入力は有効です。プレビューと解析結果を更新しました。",
+    editorInvalid: "入力を修正してください。",
+    storyCsvButton: "偏心・剛性CSV",
+    planTitle: "2D 平面プレビュー",
+    planLayerLabel: "階:",
+    planCanvasLabel: "選択階の2D平面プレビュー",
+    planStoryLabel: "階",
+    massCenterLabel: "重心",
+    stiffnessCenterLabel: "剛心",
+    storySummaryTitle: "層剛性・剛心・偏心率",
+    storySummaryHeaders: [
+      "階",
+      "X方向剛性 Kx (kN/cm)",
+      "Y方向剛性 Ky (kN/cm)",
+      "剛心 X (cm)",
+      "剛心 Y (cm)",
+      "X方向偏心率 Re (-)",
+      "Y方向偏心率 Re (-)",
+      "相対比剛性 X（簡易・非法規）(-)",
+      "相対比剛性 Y（簡易・非法規）(-)"
+    ],
+    viewerTitle: "3D モデル・結果アニメーション",
+    viewerModeLabel: "表示:",
+    viewerModeIndexLabel: "モード:",
+    viewerSeekLabel: "再生位置",
+    viewerCanvasLabel: "3D構造モデル表示",
+    viewerUnavailable: "3Dビューアーを利用できません。",
+    viewerModeOptions: {
+      static: "静止モデル",
+      real: "実固有モード",
+      complex: "複素固有モード",
+      response: "時刻歴応答"
+    },
+    viewerCategoryLabels: {
+      floors: "床",
+      columns: "柱・剛性要素",
+      structuralWalls: "構造壁",
+      nonStructuralWalls: "非構造壁",
+      braceDampers: "ブレースダンパー",
+      massDampers: "マスダンパー",
+      massCenters: "重心",
+      stiffnessCenters: "剛心"
+    },
+    storyPrefix: "階",
+    modePrefix: "モード",
+    viewerPlay: "再生",
+    viewerPause: "停止",
+    viewerScaleLabel: "変形倍率",
+    viewerRotationLabel: "ねじれ強調",
+    viewerSpeedLabel: "速度",
+    viewerReset: "視点リセット",
+    resultInputLabel: "結果DAT/CSV:",
+    responseTitle: "時刻歴応答グラフ・最大応答",
+    responseWaveCanvasLabel: "時刻歴応答波形グラフ",
+    responseProfileCanvasLabel: "最大応答の高さ方向分布グラフ",
+    responseProfileMetricLabel: "高さ方向表示:",
+    responseProfileMetricOptions: {
+      displacement: "変位 X / Y (cm)",
+      interstoryDrift: "層間変形角 X / Y (-)",
+      rotation: "ねじれ角 RZ (rad)",
+      acceleration: "加速度 X / Y (cm/s²)"
+    },
+    responseProfileSeriesLabels: {
+      displacementX: "最大 |DX|",
+      displacementY: "最大 |DY|",
+      interstoryDriftX: "最大層間変形角 X",
+      interstoryDriftY: "最大層間変形角 Y",
+      rotationZ: "最大ねじれ角 |RZ|",
+      accelerationX: "最大 |AX|",
+      accelerationY: "最大 |AY|"
+    },
+    responseHeaders: [
+      "階",
+      "最大 DX (cm)",
+      "最大 DY (cm)",
+      "最大 RZ (rad)",
+      "最大層間変形角 X (-)",
+      "最大層間変形角 Y (-)",
+      "最大 AX (cm/s²)",
+      "最大 AY (cm/s²)"
+    ],
+    chartNoSeries: "応答波形はありません",
+    chartNoPeak: "最大応答はありません",
+    chartStory: "階"
   },
   en: {
-    heroTitle: `Twist-Dynamics ${APP_VERSION} (Phase 0/1)`,
+    heroTitle: `Twist-Dynamics ${APP_VERSION}`,
     heroDescription:
-      "Validate BuildingModel (JSON/XML) and legacy analysis result formats (DAT/CSV) in the browser.",
-    parseCardTitle: "Load files (JSON / XML / DAT / CSV)",
-    parseResultTitle: "Parse summary",
-    fileInputLabel: "Target files:",
-    note: "Unit-system rules (kN, cm, etc.) stay aligned with the legacy C# implementation.",
+      "Define the building by direction, position, and stiffness, then inspect eccentricity, modes, and response in 2D/3D.",
+    parseResultTitle: "File import and compatibility report",
+    fileInputLabel: "JSON / XML / DAT / CSV:",
+    note: "Units are kN, cm, and s. Legacy sType is ignored and DXPanel entries are converted to equivalent stiffness elements.",
     languageLabel: "Language",
-    openManual: "Quick Manual",
+    openManual: "Quick manual",
     closeManual: "Close",
-    manualTitle: `Quick Manual (${APP_VERSION})`,
-    manualIntro: `Basic operations available on this screen. Current version: ${APP_VERSION}`,
+    manualTitle: `Quick manual (${APP_VERSION})`,
+    manualIntro: "Core workflow from model input to result review.",
     manualSteps: [
-      "Load model files (JSON/XML) and analysis result files (DAT/CSV) on the left, then inspect format/encoding/summary reports.",
-      "Use the right editor to input key model data (stories, z-levels, mass centers, columns, wall properties, walls) and generate JSON.",
-      "Switch language and light/dark mode at any time from the top controls.",
-      "Character encoding is auto-detected for UTF-8, Shift_JIS, and UTF-16. If detection fails, an explicit re-save message is shown.",
-      "When input content is inconsistent, the app reports it as a format error with field-level messages."
+      "Edit the building summary and tables. Red cells identify row-level errors. Paste CSV/TSV copied from spreadsheets in each table's bulk editor.",
+      "Update the model to refresh canonical JSON, plan preview, stiffness center and eccentricity, 3D model, and real modes together.",
+      "Legacy sType is ignored. Legacy dxPanels are converted to columns with identical story-stiffness contributions; the import report lists migrations.",
+      "The 3D viewer supports category/story visibility, deformation scale, torsion emphasis, playback speed, orbit, pan, and zoom.",
+      "Load DAT/CSV results to inspect modal or response animation and waveforms. Switch the peak profile between displacement, interstory drift, torsional rotation, and acceleration."
     ],
     switchToDark: "Dark mode",
     switchToLight: "Light mode",
-    unknownFormat: "Could not identify this as a supported legacy format.",
+    unknownFormat: "Could not identify a supported format.",
     formatErrorPrefix: "Format error:",
     decodeErrorPrefix: "Encoding error:",
     decodeUnsupportedAction:
-      "Re-save the file as UTF-8 (without BOM) or Shift_JIS, then upload again.",
-    editorCardTitle: "Model editor (BuildingModel)",
-    editorMassNLabel: "Stories (massN)",
-    editorStructTypeLabel: "Structure type (R / DX)",
-    editorZLevelLabel: "Z levels (CSV, massN+1 values)",
-    editorWeightLabel: "Weights (CSV, massN values)",
-    editorWMomentLabel: "Weight moments of inertia (CSV, massN values)",
-    editorWCenterLabel: "Mass centers (x,y per line)",
-    editorFloorsLabel: "Floor polygons (line: layer,x1,y1,x2,y2,...)",
-    editorColumnsLabel: "Columns (line: layer,x,y,kx,ky)",
-    editorWallCharasLabel:
-      "Wall properties (line: name,k,h,c,isEigenEffectK,isKCUnitChara[,memo])",
-    editorWallsLabel: "Walls (line: layer,name,x1,y1,x2,y2,isVisible)",
-    editorMassDampersLabel:
-      "Mass dampers (line: name,layer,x,y,weight,freqX,freqY,hX,hY)",
-    editorBraceDampersLabel:
-      "Brace dampers (line: layer,x,y,direct,k,c,width,height,isLightPos,isEigenEffectK)",
-    editorDxPanelsLabel: "DX panels (line: layer,direct,k,x1,y1,x2,y2,...)",
-    editorPreviewTitle: "Generated JSON preview",
-    editorBuildButton: "Generate JSON",
+      "Re-save as UTF-8 without BOM or Shift_JIS, then upload again.",
+    legacyStructTypeIgnored: "Ignored legacy field structInfo.sType.",
+    legacyDxPanelsConverted: (count) =>
+      `Converted ${count} legacy dxPanel ${count === 1 ? "entry" : "entries"} to equivalent column stiffness elements.`,
+    editorCardTitle: "Building summary and model actions",
+    editorMassNLabel: "Stories",
+    editorBaseZLabel: "Base level z (cm)",
+    editorBuildButton: "Update model",
     editorDownloadButton: "Save JSON",
     editorImportLabel: "Load JSON/XML:",
-    editorHint: "If a format error appears, verify line formats and column counts."
+    editorHint: "A wall's analysis contribution is controlled by its wall-property flag, independently from display visibility.",
+    editorPreviewTitle: "Show canonical JSON",
+    editorValid: "Input is valid. Previews and analysis results were updated.",
+    editorInvalid: "Correct the input errors.",
+    storyCsvButton: "Eccentricity/stiffness CSV",
+    planTitle: "2D plan preview",
+    planLayerLabel: "Story:",
+    planCanvasLabel: "2D plan preview for the selected story",
+    planStoryLabel: "Story",
+    massCenterLabel: "mass center",
+    stiffnessCenterLabel: "stiffness center",
+    storySummaryTitle: "Story stiffness, center, and eccentricity",
+    storySummaryHeaders: [
+      "Story",
+      "X stiffness Kx (kN/cm)",
+      "Y stiffness Ky (kN/cm)",
+      "Stiffness center X (cm)",
+      "Stiffness center Y (cm)",
+      "Eccentricity ratio Re X (-)",
+      "Eccentricity ratio Re Y (-)",
+      "Relative (K/W) X (simple; non-statutory) (-)",
+      "Relative (K/W) Y (simple; non-statutory) (-)"
+    ],
+    viewerTitle: "3D model and result animation",
+    viewerModeLabel: "View:",
+    viewerModeIndexLabel: "Mode:",
+    viewerSeekLabel: "Playback position",
+    viewerCanvasLabel: "3D structural model viewer",
+    viewerUnavailable: "3D viewer is unavailable.",
+    viewerModeOptions: {
+      static: "Static model",
+      real: "Real mode",
+      complex: "Complex mode",
+      response: "Time-history response"
+    },
+    viewerCategoryLabels: {
+      floors: "Floors",
+      columns: "Columns / stiffness",
+      structuralWalls: "Structural walls",
+      nonStructuralWalls: "Non-structural walls",
+      braceDampers: "Brace dampers",
+      massDampers: "Mass dampers",
+      massCenters: "Mass centers",
+      stiffnessCenters: "Stiffness centers"
+    },
+    storyPrefix: "Story",
+    modePrefix: "Mode",
+    viewerPlay: "Play",
+    viewerPause: "Pause",
+    viewerScaleLabel: "Deformation scale",
+    viewerRotationLabel: "Torsion emphasis",
+    viewerSpeedLabel: "Speed",
+    viewerReset: "Reset view",
+    resultInputLabel: "Result DAT/CSV:",
+    responseTitle: "Response waveforms and peak response",
+    responseWaveCanvasLabel: "Time-history response waveform chart",
+    responseProfileCanvasLabel: "Peak response profile chart",
+    responseProfileMetricLabel: "Height profile:",
+    responseProfileMetricOptions: {
+      displacement: "Displacement X / Y (cm)",
+      interstoryDrift: "Interstory drift X / Y (-)",
+      rotation: "Torsional rotation RZ (rad)",
+      acceleration: "Acceleration X / Y (cm/s²)"
+    },
+    responseProfileSeriesLabels: {
+      displacementX: "max |DX|",
+      displacementY: "max |DY|",
+      interstoryDriftX: "max interstory drift X",
+      interstoryDriftY: "max interstory drift Y",
+      rotationZ: "max torsional rotation |RZ|",
+      accelerationX: "max |AX|",
+      accelerationY: "max |AY|"
+    },
+    responseHeaders: [
+      "Story",
+      "max DX (cm)",
+      "max DY (cm)",
+      "max RZ (rad)",
+      "max drift X (-)",
+      "max drift Y (-)",
+      "max AX (cm/s²)",
+      "max AY (cm/s²)"
+    ],
+    chartNoSeries: "No response series",
+    chartNoPeak: "No peak response",
+    chartStory: "Story"
   }
 };
 

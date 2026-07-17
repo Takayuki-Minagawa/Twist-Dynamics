@@ -8,7 +8,6 @@ describe("BuildingModel XML parser", () => {
     const jsonModel = parseBuildingModelJson(readFixture("reference/building-model/Test_simple.json"));
 
     expect(xmlModel.structInfo?.massN).toBe(jsonModel.structInfo?.massN);
-    expect(xmlModel.structInfo?.sType).toBe(jsonModel.structInfo?.sType);
     expect(xmlModel.floors.length).toBe(jsonModel.floors.length);
     expect(xmlModel.columns.length).toBe(jsonModel.columns.length);
     expect(xmlModel.walls.length).toBe(jsonModel.walls.length);

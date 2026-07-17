@@ -2,12 +2,10 @@ import { XMLParser } from "fast-xml-parser";
 import type {
   BraceDamper,
   BuildingModel,
-  DXPanel,
   Floor,
   MassDamper,
   Point2D,
   RColumn,
-  StructType,
   Wall,
   WallCharaDB
 } from "../../core/types";
@@ -17,6 +15,13 @@ import {
   BUILDING_MODEL_JSON_FORMAT,
   BUILDING_MODEL_JSON_VERSION
 } from "./constants";
+import {
+  convertLegacyDXPanelToColumn,
+  legacyDXPanelsWarning,
+  legacyStructTypeWarning,
+  type LegacyDXPanel
+} from "./legacy";
+import type { BuildingModelParseResult } from "./types";
 
 interface XmlEnvelope {
   format?: string;
@@ -91,12 +96,6 @@ function toBooleanValue(value: unknown, label: string): boolean {
     if (normalized === "false" || normalized === "0") return false;
   }
   throw new FormatParseError(`BuildingModel XML: ${label} must be a boolean.`);
-}
-
-function toStructType(value: unknown, label: string): StructType {
-  const text = toStringValue(value, label);
-  if (text === "R" || text === "DX") return text;
-  throw new FormatParseError(`BuildingModel XML: ${label} must be "R" or "DX".`);
 }
 
 function toDirection(value: unknown, label: string): "X" | "Y" {
@@ -213,7 +212,6 @@ function parseStructInfo(modelNode: Record<string, unknown>): BuildingModel["str
   }
 
   const massN = toInteger(findValue(structRaw, ["massn"]), "structInfo.massN");
-  const sType = toStructType(findValue(structRaw, ["stype"]), "structInfo.sType");
   const zLevel = toNonEmptyNumberArray(findValue(structRaw, ["zlevel"]), "structInfo.zLevel");
   const weight = toNonEmptyNumberArray(findValue(structRaw, ["weight"]), "structInfo.weight");
   const wMoment = toNonEmptyNumberArray(findValue(structRaw, ["wmoment"]), "structInfo.wMoment");
@@ -221,7 +219,6 @@ function parseStructInfo(modelNode: Record<string, unknown>): BuildingModel["str
 
   return {
     massN,
-    sType,
     zLevel,
     weight,
     wMoment,
@@ -349,16 +346,22 @@ function parseBraceDampers(modelNode: Record<string, unknown>): BraceDamper[] {
   });
 }
 
-function parseDXPanels(modelNode: Record<string, unknown>): DXPanel[] {
+function parseLegacyDXPanels(modelNode: Record<string, unknown>): LegacyDXPanel[] {
   return readCollection(modelNode, ["dxpanels", "dxpanellist"], ["dxpanel", "item"]).map(
     (item, index) => {
       if (!isRecord(item)) {
         throw new FormatParseError(`BuildingModel XML: dxPanels[${index}] must be an object.`);
       }
+      const pos = parsePointArray(findValue(item, ["pos", "points"]), `dxPanels[${index}].pos`);
+      if (pos.length < 2) {
+        throw new FormatParseError(
+          `BuildingModel XML: dxPanels[${index}].pos must contain at least 2 points.`
+        );
+      }
       return {
         layer: toInteger(findValue(item, ["layer"]), `dxPanels[${index}].layer`),
         direct: toDirection(findValue(item, ["direct", "direction"]), `dxPanels[${index}].direct`),
-        pos: parsePointArray(findValue(item, ["pos", "points"]), `dxPanels[${index}].pos`),
+        pos,
         k: toNumber(findValue(item, ["k"]), `dxPanels[${index}].k`)
       };
     }
@@ -432,25 +435,47 @@ function parseEnvelope(rawRoot: unknown): XmlEnvelope {
   };
 }
 
-function parseModel(modelNode: unknown): BuildingModel {
+function parseModel(modelNode: unknown): BuildingModelParseResult {
   const unboxed = unboxSingleRecord(modelNode);
   if (!isRecord(unboxed)) {
     throw new FormatParseError("BuildingModel XML: model must be an object.");
   }
 
+  const structInfo = parseStructInfo(unboxed);
+  const columns = parseColumns(unboxed);
+  const legacyDXPanels = parseLegacyDXPanels(unboxed);
+  const structRaw = findValue(unboxed, ["structinfo", "struct"]);
+  const warnings: BuildingModelParseResult["warnings"] = [];
+
+  if (isRecord(structRaw) && findValue(structRaw, ["stype"]) !== undefined) {
+    warnings.push(legacyStructTypeWarning());
+  }
+  if (legacyDXPanels.length > 0) {
+    warnings.push(legacyDXPanelsWarning(legacyDXPanels.length));
+  }
+
   return {
-    structInfo: parseStructInfo(unboxed),
-    floors: parseFloors(unboxed),
-    columns: parseColumns(unboxed),
-    wallCharaDB: parseWallCharas(unboxed),
-    walls: parseWalls(unboxed),
-    massDampers: parseMassDampers(unboxed),
-    braceDampers: parseBraceDampers(unboxed),
-    dxPanels: parseDXPanels(unboxed)
+    model: {
+      structInfo,
+      floors: parseFloors(unboxed),
+      columns: [
+        ...columns,
+        ...legacyDXPanels.map((panel) => convertLegacyDXPanelToColumn(panel))
+      ],
+      wallCharaDB: parseWallCharas(unboxed),
+      walls: parseWalls(unboxed),
+      massDampers: parseMassDampers(unboxed),
+      braceDampers: parseBraceDampers(unboxed)
+    },
+    warnings
   };
 }
 
 export function parseBuildingModelXml(xmlText: string): BuildingModel {
+  return parseBuildingModelXmlWithMeta(xmlText).model;
+}
+
+export function parseBuildingModelXmlWithMeta(xmlText: string): BuildingModelParseResult {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
@@ -479,5 +504,9 @@ export function parseBuildingModelXml(xmlText: string): BuildingModel {
     );
   }
 
-  return normalizeBuildingModel(parseModel(envelope.modelNode));
+  const result = parseModel(envelope.modelNode);
+  return {
+    model: normalizeBuildingModel(result.model),
+    warnings: result.warnings
+  };
 }

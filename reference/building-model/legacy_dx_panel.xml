@@ -1,0 +1,23 @@
+<BuildingModel format="twist-dynamics/building-model" version="1">
+  <model>
+    <structInfo>
+      <massN>1</massN>
+      <sType>DX</sType>
+      <zLevel><value>0</value><value>300</value></zLevel>
+      <weight><value>100</value></weight>
+      <wMoment><value>1000</value></wMoment>
+      <wCenter><point><x>10</x><y>20</y></point></wCenter>
+    </structInfo>
+    <dxPanels>
+      <dxPanel>
+        <layer>1</layer>
+        <direct>X</direct>
+        <k>3</k>
+        <pos>
+          <point><x>2</x><y>4</y></point>
+          <point><x>6</x><y>8</y></point>
+        </pos>
+      </dxPanel>
+    </dxPanels>
+  </model>
+</BuildingModel>

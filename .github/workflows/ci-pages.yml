@@ -24,11 +24,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=low
 
       - name: Check repository text encodings
         run: npm run check:encoding
@@ -42,11 +45,17 @@ jobs:
       - name: Golden compare (resp)
         run: npm run compare -- --type resp --reference reference/resp/test.csv --target reference/resp/test.csv --max-issues 200
 
+      - name: Generate accuracy report
+        run: npm run check:accuracy
+
       - name: Run tests
         run: npm run test
 
       - name: Build
         run: npm run build
+
+      - name: Verify bundled third-party licenses
+        run: npm run check:licenses
 
       - name: Configure Pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -23,7 +23,6 @@ describe("File processing", () => {
         model: {
           structInfo: {
             massN: 1,
-            sType: "R",
             zLevel: [0, 300],
             weight: [100],
             wMoment: [10],
@@ -43,8 +42,7 @@ describe("File processing", () => {
           wallCharaDB: [],
           walls: [],
           massDampers: [],
-          braceDampers: [],
-          dxPanels: []
+          braceDampers: []
         }
       }),
       encoding: "utf-8",
@@ -58,7 +56,62 @@ describe("File processing", () => {
     expect(result.report.type).toBe("json");
     if (result.report.type === "json") {
       expect(result.report.story).toBe(1);
-      expect(result.report.structType).toBe("R");
+      expect(result.report.columnCount).toBe(0);
+    }
+  });
+
+  it("adds legacy BuildingModel migration warnings to the file report", () => {
+    const decoded: DecodedTextResult = {
+      text: JSON.stringify({
+        format: "twist-dynamics/building-model",
+        version: 1,
+        model: {
+          structInfo: {
+            massN: 1,
+            sType: "DX",
+            zLevel: [0, 300],
+            weight: [100],
+            wMoment: [10],
+            wCenter: [{ x: 0, y: 0 }]
+          },
+          floors: [],
+          columns: [],
+          wallCharaDB: [],
+          walls: [],
+          massDampers: [],
+          braceDampers: [],
+          dxPanels: [
+            {
+              layer: 1,
+              direct: "X",
+              pos: [
+                { x: 0, y: 0 },
+                { x: 2, y: 0 }
+              ],
+              k: 4
+            }
+          ]
+        }
+      }),
+      encoding: "utf-8",
+      hasBom: false,
+      warnings: ["encoding warning"]
+    };
+
+    const result = parseDecodedFile("legacy.json", decoded, {
+      ...messages,
+      legacyStructTypeIgnored: "旧sTypeを無視しました。",
+      legacyDxPanelsConverted: (count) => `旧DXPanelを${count}件変換しました。`
+    });
+
+    expect(result.report.type).toBe("json");
+    if (result.report.type === "json") {
+      expect(result.report.columnCount).toBe(1);
+      expect(result.report.warnings).toEqual([
+        "encoding warning",
+        "旧sTypeを無視しました。",
+        "旧DXPanelを1件変換しました。"
+      ]);
     }
   });
 
@@ -69,7 +122,6 @@ describe("File processing", () => {
         "  <model>",
         "    <structInfo>",
         "      <massN>1</massN>",
-        "      <sType>R</sType>",
         "      <zLevel><value>0</value><value>300</value></zLevel>",
         "      <weight><value>100</value></weight>",
         "      <wMoment><value>10</value></wMoment>",
@@ -84,7 +136,6 @@ describe("File processing", () => {
         "    <walls />",
         "    <massDampers />",
         "    <braceDampers />",
-        "    <dxPanels />",
         "  </model>",
         "</BuildingModel>"
       ].join("\n"),

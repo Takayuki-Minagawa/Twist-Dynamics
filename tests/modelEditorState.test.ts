@@ -22,7 +22,7 @@ describe("model editor form state", () => {
     const rebuilt = buildModelFromEditorForm(form);
 
     expect(rebuilt.structInfo?.massN).toBe(source.structInfo?.massN);
-    expect(rebuilt.structInfo?.sType).toBe(source.structInfo?.sType);
+    expect(rebuilt.structInfo?.zLevel).toEqual(source.structInfo?.zLevel);
     expect(rebuilt.floors.length).toBe(source.floors.length);
     expect(rebuilt.columns.length).toBe(source.columns.length);
     expect(rebuilt.wallCharaDB.length).toBe(source.wallCharaDB.length);
@@ -32,6 +32,6 @@ describe("model editor form state", () => {
   it("rejects invalid wall direction in editor form", () => {
     const form = createDefaultModelEditorFormData();
     form.walls = "1,WAL1,0,0,100,100,true";
-    expect(() => buildModelFromEditorForm(form)).toThrow("diagonal is not allowed");
+    expect(() => buildModelFromEditorForm(form)).toThrow("aligned to the X or Y axis");
   });
 });

@@ -1,11 +1,9 @@
 import type {
   BraceDamper,
   BuildingModel,
-  DXPanel,
   MassDamper,
   Point2D,
   StructInfo,
-  StructType,
   Wall,
   WallCharaDB
 } from "../../core/types";
@@ -14,7 +12,13 @@ import {
   BUILDING_MODEL_JSON_FORMAT,
   BUILDING_MODEL_JSON_VERSION
 } from "./constants";
-import type { BuildingModelJsonDocument } from "./types";
+import {
+  convertLegacyDXPanelToColumn,
+  legacyDXPanelsWarning,
+  legacyStructTypeWarning,
+  type LegacyDXPanel
+} from "./legacy";
+import type { BuildingModelJsonDocument, BuildingModelParseResult } from "./types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -59,11 +63,6 @@ function toOptionalString(value: unknown, label: string): string {
     throw new FormatParseError(`BuildingModel JSON: ${label} must be a string.`);
   }
   return value;
-}
-
-function toStructType(value: unknown, label: string): StructType {
-  if (value === "R" || value === "DX") return value;
-  throw new FormatParseError(`BuildingModel JSON: ${label} must be "R" or "DX".`);
 }
 
 function toDirection(value: unknown, label: string): "X" | "Y" {
@@ -116,7 +115,6 @@ function parseStructInfo(value: unknown): StructInfo | undefined {
 
   return {
     massN: toInteger(value.massN, "structInfo.massN"),
-    sType: toStructType(value.sType, "structInfo.sType"),
     zLevel: parseNumberArray(value.zLevel, "structInfo.zLevel"),
     weight: parseNumberArray(value.weight, "structInfo.weight"),
     wMoment: parseNumberArray(value.wMoment, "structInfo.wMoment"),
@@ -213,32 +211,58 @@ function parseBraceDamper(value: unknown, label: string): BraceDamper {
   };
 }
 
-function parseDXPanel(value: unknown, label: string): DXPanel {
+function parseLegacyDXPanel(value: unknown, label: string): LegacyDXPanel {
   if (!isRecord(value)) {
     throw new FormatParseError(`BuildingModel JSON: ${label} must be an object.`);
+  }
+  const pos = parsePointArray(value.pos, `${label}.pos`);
+  if (pos.length < 2) {
+    throw new FormatParseError(
+      `BuildingModel JSON: ${label}.pos must contain at least 2 points.`
+    );
   }
   return {
     layer: toInteger(value.layer, `${label}.layer`),
     direct: toDirection(value.direct, `${label}.direct`),
-    pos: parsePointArray(value.pos, `${label}.pos`),
+    pos,
     k: toFiniteNumber(value.k, `${label}.k`)
   };
 }
 
-function parseModelValue(value: unknown): BuildingModel {
+function parseModelValue(value: unknown): BuildingModelParseResult {
   if (!isRecord(value)) {
     throw new FormatParseError("BuildingModel JSON: model must be an object.");
   }
 
+  const structInfo = parseStructInfo(value.structInfo);
+  const columns = parseArrayField(value, "columns", parseColumn);
+  const legacyDXPanels = parseArrayField(value, "dxPanels", parseLegacyDXPanel);
+  const warnings: BuildingModelParseResult["warnings"] = [];
+
+  if (
+    isRecord(value.structInfo) &&
+    Object.prototype.hasOwnProperty.call(value.structInfo, "sType")
+  ) {
+    warnings.push(legacyStructTypeWarning());
+  }
+  if (legacyDXPanels.length > 0) {
+    warnings.push(legacyDXPanelsWarning(legacyDXPanels.length));
+  }
+
   return {
-    structInfo: parseStructInfo(value.structInfo),
-    floors: parseArrayField(value, "floors", parseFloor),
-    columns: parseArrayField(value, "columns", parseColumn),
-    wallCharaDB: parseArrayField(value, "wallCharaDB", parseWallChara),
-    walls: parseArrayField(value, "walls", parseWall),
-    massDampers: parseArrayField(value, "massDampers", parseMassDamper),
-    braceDampers: parseArrayField(value, "braceDampers", parseBraceDamper),
-    dxPanels: parseArrayField(value, "dxPanels", parseDXPanel)
+    model: {
+      structInfo,
+      floors: parseArrayField(value, "floors", parseFloor),
+      columns: [
+        ...columns,
+        ...legacyDXPanels.map((panel) => convertLegacyDXPanelToColumn(panel))
+      ],
+      wallCharaDB: parseArrayField(value, "wallCharaDB", parseWallChara),
+      walls: parseArrayField(value, "walls", parseWall),
+      massDampers: parseArrayField(value, "massDampers", parseMassDamper),
+      braceDampers: parseArrayField(value, "braceDampers", parseBraceDamper)
+    },
+    warnings
   };
 }
 
@@ -278,6 +302,10 @@ function parseJsonDocument(value: unknown): BuildingModelJsonDocument {
 }
 
 export function parseBuildingModelDocument(value: unknown): BuildingModel {
+  return parseBuildingModelDocumentWithMeta(value).model;
+}
+
+export function parseBuildingModelDocumentWithMeta(value: unknown): BuildingModelParseResult {
   const doc = parseJsonDocument(value);
   return parseModelValue(doc.model);
 }

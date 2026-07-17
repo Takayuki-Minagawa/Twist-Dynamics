@@ -2,17 +2,17 @@ import {
   BUILDING_MODEL_JSON_FORMAT,
   decodeTextWithMeta,
   FormatParseError,
-  parseBuildingModelJson,
-  parseBuildingModelXml,
+  parseBuildingModelJsonWithMeta,
+  parseBuildingModelXmlWithMeta,
   parseComplexModalDat,
   parseModalDat,
   parseRespCsv,
   summarizeBuildingModel,
   TextDecodingError,
   type DecodedTextResult,
+  type BuildingModelWarning,
   type SupportedTextEncoding
 } from "../io";
-import type { StructType } from "../core/types";
 
 export type FileType = "xml" | "modal" | "complex" | "resp" | "json" | "unknown";
 
@@ -21,6 +21,8 @@ export interface FileProcessingMessages {
   formatErrorPrefix: string;
   decodeErrorPrefix: string;
   decodeUnsupportedAction: string;
+  legacyStructTypeIgnored?: string;
+  legacyDxPanelsConverted?: (count: number) => string;
 }
 
 interface ReportBase {
@@ -33,14 +35,12 @@ interface ReportBase {
 export interface XmlReport extends ReportBase {
   type: "xml";
   story: number | null;
-  structType: StructType | null;
   floorCount: number;
   columnCount: number;
   wallCount: number;
   wallCharaCount: number;
   massDamperCount: number;
   braceDamperCount: number;
-  dxPanelCount: number;
 }
 
 export interface ModalReport extends ReportBase {
@@ -67,14 +67,12 @@ export interface RespReport extends ReportBase {
 export interface JsonReport extends ReportBase {
   type: "json";
   story: number | null;
-  structType: StructType | null;
   floorCount: number;
   columnCount: number;
   wallCount: number;
   wallCharaCount: number;
   massDamperCount: number;
   braceDamperCount: number;
-  dxPanelCount: number;
 }
 
 export interface UnknownReport extends ReportBase {
@@ -176,6 +174,34 @@ function createReportBase(fileName: string, decoded: DecodedTextResult): ReportB
   return reportBase;
 }
 
+export function localizeBuildingModelWarning(
+  warning: BuildingModelWarning,
+  messages: FileProcessingMessages
+): string {
+  if (warning.code === "legacy-struct-type-ignored") {
+    return messages.legacyStructTypeIgnored ?? warning.message;
+  }
+  if (warning.code === "legacy-dx-panels-converted") {
+    return messages.legacyDxPanelsConverted?.(warning.count ?? 0) ?? warning.message;
+  }
+  return warning.message;
+}
+
+function appendBuildingModelWarnings(
+  reportBase: ReportBase,
+  warnings: BuildingModelWarning[],
+  messages: FileProcessingMessages
+): ReportBase {
+  if (warnings.length === 0) return reportBase;
+  return {
+    ...reportBase,
+    warnings: [
+      ...(reportBase.warnings ?? []),
+      ...warnings.map((warning) => localizeBuildingModelWarning(warning, messages))
+    ]
+  };
+}
+
 export function parseDecodedFile(
   fileName: string,
   decoded: DecodedTextResult,
@@ -187,13 +213,14 @@ export function parseDecodedFile(
 
   switch (type) {
     case "xml": {
-      const model = parseBuildingModelXml(text);
+      const parsed = parseBuildingModelXmlWithMeta(text);
+      const modelReportBase = appendBuildingModelWarnings(reportBase, parsed.warnings, messages);
       return {
         kind: "success",
         report: {
-          ...reportBase,
+          ...modelReportBase,
           type,
-          ...summarizeBuildingModel(model)
+          ...summarizeBuildingModel(parsed.model)
         }
       };
     }
@@ -237,13 +264,14 @@ export function parseDecodedFile(
       };
     }
     case "json": {
-      const model = parseBuildingModelJson(text);
+      const parsed = parseBuildingModelJsonWithMeta(text);
+      const modelReportBase = appendBuildingModelWarnings(reportBase, parsed.warnings, messages);
       return {
         kind: "success",
         report: {
-          ...reportBase,
+          ...modelReportBase,
           type,
-          ...summarizeBuildingModel(model)
+          ...summarizeBuildingModel(parsed.model)
         }
       };
     }

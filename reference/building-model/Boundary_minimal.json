@@ -4,7 +4,6 @@
   "model": {
     "structInfo": {
       "massN": 1,
-      "sType": "R",
       "zLevel": [0, 250],
       "weight": [80],
       "wMoment": [5000],
@@ -51,7 +50,6 @@
       }
     ],
     "massDampers": [],
-    "braceDampers": [],
-    "dxPanels": []
+    "braceDampers": []
   }
 }
