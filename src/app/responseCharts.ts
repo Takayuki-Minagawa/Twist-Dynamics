@@ -193,6 +193,12 @@ export function decimateSeriesForCanvas(
 
   const bucketSize = Math.ceil(count / bucketCount);
   const output: Array<{ time: number; value: number }> = [];
+  const pushIndex = (index: number): void => {
+    output.push({ time: time[index], value: values[index] });
+  };
+  // Always anchor the polyline at the true first sample so the drawn line
+  // starts at t0 even when index 0 is not its bucket's extremum.
+  pushIndex(0);
   for (let start = 0; start < count; start += bucketSize) {
     const end = Math.min(start + bucketSize, count);
     let minIndex = start;
@@ -206,7 +212,17 @@ export function decimateSeriesForCanvas(
       : minIndex < maxIndex
         ? [minIndex, maxIndex]
         : [maxIndex, minIndex];
-    for (const index of indices) output.push({ time: time[index], value: values[index] });
+    for (const index of indices) {
+      // Skip index 0 (already anchored) and any bucket extremum equal to the
+      // previously emitted sample to avoid duplicate coincident points.
+      if (index === 0) continue;
+      pushIndex(index);
+    }
+  }
+  // Always anchor the final sample so a terminal peak/trough is never dropped.
+  const lastIndex = count - 1;
+  if (output[output.length - 1]?.time !== time[lastIndex]) {
+    pushIndex(lastIndex);
   }
   return output;
 }
@@ -287,13 +303,22 @@ export function renderTimeSeriesChart(
   context.fillText(minValue.toExponential(2), 4, bottom);
 
   let legendX = left;
+  let legendY = 17;
   for (const [index, item] of series.entries()) {
     context.fillStyle = SERIES_COLORS[index % SERIES_COLORS.length];
-    context.fillRect(legendX, 12, 12, 3);
-    context.fillStyle = chart.ink;
     const label = `${item.label}${item.unit ? ` (${item.unit})` : ""}`;
-    context.fillText(label, legendX + 17, 17);
-    legendX += context.measureText(label).width + 38;
+    const entryWidth = 17 + context.measureText(label).width + 21;
+    // Wrap to the next legend row when the entry would overrun the right edge,
+    // so long localized labels stay inside the plot instead of clipping.
+    if (legendX > left && legendX + entryWidth > right && legendY + 14 <= top) {
+      legendX = left;
+      legendY += 14;
+    }
+    context.fillStyle = SERIES_COLORS[index % SERIES_COLORS.length];
+    context.fillRect(legendX, legendY - 5, 12, 3);
+    context.fillStyle = chart.ink;
+    context.fillText(label, legendX + 17, legendY);
+    legendX += entryWidth;
   }
 }
 
@@ -370,9 +395,16 @@ export function renderPeakProfileChart(
   const maxText = `${maxObserved.toExponential(2)}${unit === "-" ? " (-)" : ` ${unit}`}`;
   context.fillText(maxText, right - context.measureText(maxText).width, bottom + 18);
   let legendX = left;
+  let legendY = 17;
   for (const [index, item] of series.entries()) {
+    const entryWidth = context.measureText(item.label).width + 24;
+    // Wrap onto a second legend row rather than overflowing the right edge.
+    if (legendX > left && legendX + entryWidth > right && legendY + 14 <= top) {
+      legendX = left;
+      legendY += 14;
+    }
     context.fillStyle = SERIES_COLORS[index % SERIES_COLORS.length];
-    context.fillText(item.label, legendX, 17);
-    legendX += context.measureText(item.label).width + 24;
+    context.fillText(item.label, legendX, legendY);
+    legendX += entryWidth;
   }
 }

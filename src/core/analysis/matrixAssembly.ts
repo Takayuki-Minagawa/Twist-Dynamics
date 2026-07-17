@@ -97,6 +97,8 @@ export function assembleAnalysisMatrices(
   const baseShape = buildBaseShape(model, storyCount);
 
   for (const damper of model.massDampers) {
+    // Layer range is already validated by calculateStoryContributions above
+    // (safeLayerToIndex), which runs before this mass-only pass.
     const storyIndex = damper.layer - 1;
     const mdMass = damper.weight / STANDARD_GRAVITY_CM;
     const addMassIndex = storyIndex * 3;

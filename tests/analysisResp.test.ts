@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { analyzeTimeHistory, type GroundWave } from "../src/core/analysis";
+import {
+  analyzeTimeHistory,
+  assembleAnalysisMatrices,
+  type GroundWave
+} from "../src/core/analysis";
 import { parseRespCsv, serializeRespCsv } from "../src/io";
 import type { BuildingModel } from "../src/core/types";
 
@@ -79,6 +83,21 @@ describe("time history response analysis", () => {
     expect(resp.header.includes("DX_1")).toBe(true);
     expect(resp.header.includes("AX_R")).toBe(true);
     expect(resp.columnMaxAbs.some((value) => value > 0)).toBe(true);
+  });
+
+  it("rejects a mass damper whose layer is outside the story range", () => {
+    const model = createSimpleModel();
+    model.massDampers = [
+      {
+        name: "TMD",
+        layer: 2,
+        pos: { x: 0, y: 0 },
+        weight: 10,
+        freq: { x: 1, y: 1 },
+        h: { x: 0.02, y: 0.02 }
+      }
+    ];
+    expect(() => assembleAnalysisMatrices(model)).toThrow(/massDamper\.layer must be between 1 and 1/);
   });
 
   it("keeps key response values across serialize -> parse", () => {

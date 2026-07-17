@@ -13,12 +13,22 @@ describe("response chart decimation", () => {
     const values = time.map((index) => (index === 24 ? -20 : index === 25 ? 30 : Math.sin(index)));
     const points = decimateSeriesForCanvas(time, values, 10);
 
-    expect(points.length).toBeLessThanOrEqual(20);
+    expect(points.length).toBeLessThanOrEqual(22);
     expect(points.some((point) => point.value === -20)).toBe(true);
     expect(points.some((point) => point.value === 30)).toBe(true);
     expect(points.map((point) => point.time)).toEqual(
       points.map((point) => point.time).slice().sort((a, b) => a - b)
     );
+  });
+
+  it("anchors the first and last samples so terminal extrema are never dropped", () => {
+    // A late spike that is not the global extremum must still survive decimation.
+    const time = Array.from({ length: 200 }, (_, index) => index);
+    const values = time.map((index) => (index === 199 ? 5 : Math.sin(index)));
+    const points = decimateSeriesForCanvas(time, values, 8);
+
+    expect(points[0]).toEqual({ time: 0, value: values[0] });
+    expect(points[points.length - 1]).toEqual({ time: 199, value: 5 });
   });
 });
 

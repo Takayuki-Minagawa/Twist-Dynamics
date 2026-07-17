@@ -767,7 +767,8 @@ function normalizeParsedCell(column: EditorColumnDefinition, value: string): str
 function fieldsToRow(
   section: EditorSectionId,
   fields: readonly string[],
-  rowIndex: number
+  rowIndex: number,
+  delimiter: "," | "\t"
 ): { row: EditorRow; issues: EditorValidationIssue[] } {
   const schema = getEditorTableSchema(section);
   const row = createEmptyEditorRow(section, rowIndex);
@@ -794,7 +795,7 @@ function fieldsToRow(
 
   schema.columns.forEach((column, columnIndex) => {
     const raw = column.csv?.rest
-      ? fields.slice(columnIndex).join(",")
+      ? fields.slice(columnIndex).join(delimiter)
       : fields[columnIndex] ?? row[column.key] ?? "";
     row[column.key] = normalizeParsedCell(column, raw);
   });
@@ -820,7 +821,7 @@ export function parseEditorTableText(
   }
 
   records.forEach((fields, rowIndex) => {
-    const converted = fieldsToRow(section, fields, rowIndex);
+    const converted = fieldsToRow(section, fields, rowIndex, delimiter);
     rows.push(converted.row);
     issues.push(...converted.issues);
   });
